@@ -1,0 +1,140 @@
+<div class="modal-box">
+  <div class="split-header">
+    <div>
+      <h3 class="modal-title">Edit Clinic Profile</h3>
+      <p class="modal-subtitle">Update clinic name, owner credentials, address, and offered clinical specializations.</p>
+    </div>
+    <button type="button" class="btn btn-secondary btn-sm" (click)="cancel()">
+      <mat-icon class="inline-mat-icon">close</mat-icon>
+    </button>
+  </div>
+
+  <form [formGroup]="clinicForm" (ngSubmit)="submit()">
+    <div class="modal-body">
+      <!-- Error Message Banner -->
+      @if (errorMessage()) {
+        <div class="api-feedback error">
+          <mat-icon>error</mat-icon>
+          <span>{{ errorMessage() }}</span>
+        </div>
+      }
+
+      <div class="form-section-title">General Information</div>
+      <div class="form-grid-2">
+        <!-- Clinic Name -->
+        <div class="form-group">
+          <label>Clinic Name <span class="req">*</span></label>
+          <input type="text" class="form-control" formControlName="clinicName" placeholder="e.g. MediFlow Super Speciality">
+          @if (clinicForm.get('clinicName')?.touched && clinicForm.get('clinicName')?.hasError('required')) {
+            <span class="field-error">Clinic name is required.</span>
+          }
+        </div>
+
+        <!-- Owner Name -->
+        <div class="form-group">
+          <label>Owner Name <span class="req">*</span></label>
+          <input type="text" class="form-control" formControlName="ownerName" placeholder="e.g. Dr. Ramesh Gupta">
+          @if (clinicForm.get('ownerName')?.touched && clinicForm.get('ownerName')?.hasError('required')) {
+            <span class="field-error">Owner name is required.</span>
+          }
+        </div>
+
+        <!-- Owner Mobile Number -->
+        <div class="form-group">
+          <label>Owner Mobile Number <span class="req">*</span></label>
+          <div class="phone-input-wrapper">
+            <span class="country-code">+91</span>
+            <input type="tel" class="form-control" formControlName="ownerPhoneNumber" placeholder="9876543210" maxlength="10">
+          </div>
+          @if (clinicForm.get('ownerPhoneNumber')?.touched && clinicForm.get('ownerPhoneNumber')?.hasError('pattern')) {
+            <span class="field-error">Enter a valid 10-digit Indian mobile number.</span>
+          }
+        </div>
+
+        <!-- Owner Email -->
+        <div class="form-group">
+          <label>Owner Email <span class="req">*</span></label>
+          <input type="email" class="form-control" formControlName="ownerEmail" placeholder="e.g. owner@clinic.com">
+          @if (clinicForm.get('ownerEmail')?.touched && clinicForm.get('ownerEmail')?.hasError('pattern')) {
+            <span class="field-error">Enter a valid email address.</span>
+          }
+        </div>
+      </div>
+
+      <div class="form-section-title mt-4">Location &amp; Address</div>
+      <div class="form-grid-2">
+        <!-- Address Line -->
+        <div class="form-group full-width">
+          <label>Address Line <span class="req">*</span></label>
+          <input type="text" class="form-control" formControlName="addressLine" placeholder="e.g. 100 Feet Road, Indiranagar">
+          @if (clinicForm.get('addressLine')?.touched && clinicForm.get('addressLine')?.hasError('required')) {
+            <span class="field-error">Address is required.</span>
+          }
+        </div>
+
+        <!-- City -->
+        <div class="form-group">
+          <label>City <span class="req">*</span></label>
+          <input type="text" class="form-control" formControlName="city" placeholder="e.g. Bengaluru">
+          @if (clinicForm.get('city')?.touched && clinicForm.get('city')?.hasError('required')) {
+            <span class="field-error">City is required.</span>
+          }
+        </div>
+
+        <!-- State -->
+        <div class="form-group">
+          <label>State <span class="req">*</span></label>
+          <input type="text" class="form-control" formControlName="state" placeholder="e.g. Karnataka">
+          @if (clinicForm.get('state')?.touched && clinicForm.get('state')?.hasError('required')) {
+            <span class="field-error">State is required.</span>
+          }
+        </div>
+
+        <!-- Pincode -->
+        <div class="form-group">
+          <label>Pincode <span class="req">*</span></label>
+          <input type="text" class="form-control" formControlName="pincode" placeholder="560038" maxlength="6">
+          @if (clinicForm.get('pincode')?.touched && clinicForm.get('pincode')?.hasError('pattern')) {
+            <span class="field-error">Enter a valid 6-digit postal code.</span>
+          }
+        </div>
+
+        <!-- Status -->
+        <div class="form-group">
+          <label>Clinic Status</label>
+          <select class="form-control" formControlName="status">
+            <option value="ACTIVE">ACTIVE</option>
+            <option value="INACTIVE">INACTIVE</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-section-title mt-4">Departments &amp; Specializations</div>
+      <div class="specialties-chips-grid">
+        @for (spec of availableSpecialties; track spec) {
+          <span 
+            class="chip specialty-chip"
+            [class.active]="isSpecialtySelected(spec)"
+            (click)="toggleSpecialty(spec)">
+            <mat-icon class="inline-mat-icon">{{ isSpecialtySelected(spec) ? 'check' : 'add' }}</mat-icon>
+            {{ spec }}
+          </span>
+        }
+      </div>
+      @if (clinicForm.get('specializations')?.touched && clinicForm.get('specializations')?.value?.length === 0) {
+        <span class="field-error mt-2">Select at least one specialization.</span>
+      }
+    </div>
+
+    <div class="modal-actions mt-4">
+      <button type="button" class="btn btn-secondary" (click)="cancel()">Cancel</button>
+      <button type="submit" class="btn btn-primary" [disabled]="isSubmitting()">
+        @if (isSubmitting()) {
+          <mat-icon class="inline-mat-icon spin-icon">sync</mat-icon> Updating...
+        } @else {
+          <mat-icon class="inline-mat-icon">save</mat-icon> Save Changes
+        }
+      </button>
+    </div>
+  </form>
+</div>

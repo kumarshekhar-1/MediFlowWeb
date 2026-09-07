@@ -1,0 +1,20 @@
+.input-with-icon {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+
+  .input-icon {
+    position: absolute;
+    left: 1rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--navy-800, #1e3a8a);
+    pointer-events: none;
+    z-index: 5;
+  }
+
+  .form-control.with-icon {
+    padding-left: 4rem !important;
+  }
+}

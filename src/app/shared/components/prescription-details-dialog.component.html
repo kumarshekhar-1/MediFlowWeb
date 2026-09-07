@@ -1,0 +1,133 @@
+<div class="dialog-header no-print">
+  <h2 class="dialog-title">Prescription Details</h2>
+  <div class="header-actions">
+    <button type="button" class="btn btn-primary btn-sm" (click)="downloadPdf()" [disabled]="isDownloading()">
+      @if (isDownloading()) {
+        <mat-icon class="inline-mat-icon spin-icon">sync</mat-icon>
+      } @else {
+        <mat-icon class="inline-mat-icon">download</mat-icon>
+      }
+      <span>Download PDF</span>
+    </button>
+    <button type="button" class="btn btn-outline btn-sm" (click)="printPdf()">
+      <mat-icon class="inline-mat-icon">print</mat-icon>
+      <span>Print PDF</span>
+    </button>
+    <button type="button" class="btn btn-secondary btn-sm" (click)="close()">
+      <mat-icon class="inline-mat-icon">close</mat-icon>
+      <span>Close</span>
+    </button>
+  </div>
+</div>
+
+<mat-dialog-content class="rx-dialog-content">
+  <div class="rx-view-container">
+    <!-- Clinic & Doctor Info Header -->
+    <div class="clinic-header" [class.doctor-only]="!prescription.clinicName">
+      <div class="clinic-info">
+        @if (prescription.clinicName) {
+          <h2 class="clinic-name">{{ prescription.clinicName }}</h2>
+          @if (db.currentClinic() && db.currentClinic().address) {
+            <p class="clinic-meta">
+              <mat-icon class="tiny-icon">location_on</mat-icon> {{ db.currentClinic().address }}
+            </p>
+          }
+          @if (db.currentClinic() && db.currentClinic().contact) {
+            <p class="clinic-meta">
+              <mat-icon class="tiny-icon">phone</mat-icon> Tel: {{ db.currentClinic().contact }}
+            </p>
+          }
+        }
+      </div>
+      <div class="doctor-info text-right">
+        <h3 class="doctor-name">
+          @if (prescription.doctorName.startsWith('Dr.') || prescription.doctorName.startsWith('Dr ')) {
+            {{ prescription.doctorName }}
+          } @else {
+            Dr. {{ prescription.doctorName }}
+          }
+        </h3>
+        <p class="doctor-spec">{{ prescription.doctorSpecialization || 'General Physician' }}</p>
+        @if (prescription.doctorRegNo) {
+          <p class="doctor-reg">Reg No: {{ prescription.doctorRegNo }}</p>
+        }
+      </div>
+    </div>
+
+    <hr class="rx-divider" />
+
+    <!-- Patient & Consultation Metadata -->
+    <div class="rx-meta-row">
+      <div class="patient-details">
+        <mat-icon class="meta-icon">person</mat-icon>
+        <strong>Patient:</strong> {{ prescription.patientName }}
+        @if (prescription.patientAge !== undefined) {
+          <span class="patient-sub">({{ prescription.patientAge }}y, {{ prescription.patientGender }})</span>
+        }
+      </div>
+      <div class="prescription-date">
+        <mat-icon class="meta-icon">event</mat-icon>
+        <strong>Date:</strong> {{ prescription.issuedAt | date:'medium' }}
+      </div>
+    </div>
+
+    <!-- Diagnosis & Symptoms Details -->
+    <div class="rx-diag-box">
+      <p class="diagnosis-text">
+        <mat-icon class="box-icon">medical_information</mat-icon>
+        <strong>Diagnosis:</strong> {{ prescription.diagnosis || 'General Checkup' }}
+      </p>
+      @if (prescription.clinicalNotes) {
+        <p class="notes-text"><strong>Clinical Notes:</strong> {{ prescription.clinicalNotes }}</p>
+      }
+      @if (prescription.symptoms && prescription.symptoms.length > 0) {
+        <p class="symptoms-text"><strong>Symptoms:</strong> {{ prescription.symptoms.join(', ') }}</p>
+      }
+    </div>
+
+    <!-- Medicines Prescribed Table -->
+    <table class="data-table rx-meds-table mt-2">
+      <thead>
+        <tr>
+          <th>Medicine</th>
+          <th>Dosage</th>
+          <th>Duration</th>
+          <th>Instructions</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (it of prescription.items; track it.id) {
+          <tr>
+            <td class="med-cell">
+              <strong>{{ it.medicineName }}</strong>
+              @if (it.genericName) {
+                <span class="sub-text generic-name">({{ it.genericName }})</span>
+              }
+            </td>
+            <td class="dosage-cell">
+              <span class="badge-pill dosage-pill">{{ it.frequency }}</span>
+            </td>
+            <td class="duration-cell">
+              <span class="badge-pill duration-pill">{{ it.duration }}</span>
+            </td>
+            <td class="instructions-cell">{{ it.instructions || '—' }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+
+    <!-- Doctor's Advice & Guidelines -->
+    @if (prescription.advice && prescription.advice.length > 0) {
+      <div class="rx-advice-box mt-3">
+        <h4 class="advice-title">
+          <mat-icon class="advice-icon">lightbulb</mat-icon> Doctor Advice &amp; Lifestyle:
+        </h4>
+        <ul class="advice-list">
+          @for (a of prescription.advice; track a) {
+            <li class="advice-item">{{ a }}</li>
+          }
+        </ul>
+      </div>
+    }
+  </div>
+</mat-dialog-content>

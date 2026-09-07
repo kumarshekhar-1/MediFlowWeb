@@ -1,0 +1,220 @@
+.map-pin-picker-root {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  width: 100%;
+}
+
+.picker-search-bar {
+  position: relative;
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  flex-wrap: wrap;
+
+  .search-input-box {
+    position: relative;
+    flex: 1;
+    min-width: 260px;
+    display: flex;
+    align-items: center;
+
+    .search-icon {
+      position: absolute;
+      left: 0.85rem;
+      color: var(--navy-600);
+      font-size: 1.25rem;
+      width: 1.25rem;
+      height: 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+      background: transparent;
+    }
+
+    .address-search-input {
+      width: 100%;
+      padding-left: 2.75rem;
+      min-height: 46px;
+      font-size: 0.875rem;
+      border: 1.5px solid rgba(191, 219, 254, 0.7);
+      border-radius: var(--radius-md);
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(8px);
+      color: var(--navy-950);
+
+      &:focus {
+        border-color: var(--navy-600);
+        background: #ffffff;
+        box-shadow: 0 0 0 3.5px rgba(37, 99, 235, 0.15);
+      }
+    }
+  }
+
+  .gps-btn {
+    min-height: 46px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    white-space: nowrap;
+    padding: 0 1.25rem;
+    border-radius: var(--radius-md);
+  }
+}
+
+.search-autocomplete-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border: 1.5px solid rgba(191, 219, 254, 0.8);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xl);
+  z-index: 1000;
+  max-height: 240px;
+  overflow-y: auto;
+  padding: 0.35rem;
+
+  .search-result-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.65rem 0.85rem;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: background 0.15s ease;
+
+    &:hover {
+      background: rgba(239, 246, 255, 0.9);
+    }
+
+    .res-icon {
+      color: var(--navy-600);
+      font-size: 1.2rem;
+      width: 1.2rem;
+      height: 1.2rem;
+    }
+
+    .res-text {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .res-title {
+      font-size: 0.875rem;
+      font-weight: 700;
+      color: var(--navy-950);
+    }
+
+    .res-sub {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+  }
+}
+
+/* Map Wrapper & Leaflet Canvas */
+.map-wrapper-card {
+  position: relative;
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  border: 1.5px solid var(--surface-border-glass);
+  box-shadow: var(--shadow-glass);
+}
+
+.leaflet-map-canvas {
+  height: 360px;
+  width: 100%;
+  z-index: 1;
+  background: #e5eef4;
+}
+
+.map-overlay-tip {
+  position: absolute;
+  bottom: 0.85rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(6, 13, 31, 0.85);
+  backdrop-filter: blur(10px);
+  color: #ffffff;
+  padding: 0.45rem 1.25rem;
+  border-radius: var(--radius-full);
+  font-size: 0.775rem;
+  font-weight: 700;
+  pointer-events: none;
+  z-index: 500;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  white-space: nowrap;
+}
+
+/* Custom Marker Styling */
+::ng-deep .custom-leaflet-marker-pin {
+  background: transparent;
+  border: none;
+
+  .pin-svg-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: grab;
+    filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.35));
+    transition: transform 0.15s ease;
+
+    &:active {
+      cursor: grabbing;
+      transform: scale(1.15) translateY(-5px);
+    }
+
+    .pin-pulse-shadow {
+      width: 16px;
+      height: 6px;
+      background: rgba(0, 0, 0, 0.35);
+      border-radius: 50%;
+      filter: blur(1.5px);
+      margin-top: -3px;
+    }
+  }
+}
+
+.selected-location-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: rgba(236, 253, 245, 0.85);
+  backdrop-filter: blur(8px);
+  border: 1.5px solid rgba(167, 243, 208, 0.9);
+  border-radius: var(--radius-lg);
+  padding: 1rem 1.25rem;
+
+  .loc-check-icon {
+    font-size: 1.75rem;
+    width: 1.75rem;
+    height: 1.75rem;
+    color: #16a34a;
+  }
+
+  .loc-badge {
+    font-size: 0.7rem;
+    font-weight: 800;
+    color: #15803d;
+    letter-spacing: 0.05em;
+  }
+
+  .loc-address-text {
+    font-size: 1rem;
+    font-weight: 800;
+    color: var(--navy-950);
+    margin: 0.15rem 0;
+  }
+
+  .loc-note {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+  }
+}

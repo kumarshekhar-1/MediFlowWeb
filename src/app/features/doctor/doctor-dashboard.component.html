@@ -1,0 +1,724 @@
+@if (isProfileIncomplete) {
+  <app-doctor-profile [hideBackButton]="true"></app-doctor-profile>
+} @else {
+  <div class="content-pad">
+  <!-- Doctor Welcome Bar -->
+  <div class="doctor-hero-bar">
+    <div class="doc-info-block">
+      <div class="doc-badge-avatar">
+        <mat-icon>stethoscope</mat-icon>
+      </div>
+      <div>
+        <h1 class="page-title">{{ activeDoctor().name || 'Doctor Portal' }}</h1>
+        <p class="page-subtitle">
+          {{ activeDoctor().specialization }} • Reg No: {{ activeDoctor().registrationNo }} • {{ activeDoctor().workingHours }}
+        </p>
+      </div>
+    </div>
+
+    <div class="doctor-quick-stats">
+      <div class="q-stat">
+        <span class="q-label">Waiting In Queue</span>
+        <span class="q-val text-amber">{{ waitingPatients().length }}</span>
+      </div>
+      <div class="q-stat">
+        <span class="q-label">In Consultation</span>
+        <span class="q-val text-purple">{{ inConsultationPatient() ? 1 : 0 }}</span>
+      </div>
+      <div class="q-stat">
+        <span class="q-label">Completed Today</span>
+        <span class="q-val text-emerald">{{ completedToday().length }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Layout Grid: Queue on Left, Active EMR / Prescription Desk on Right -->
+  <div class="doctor-grid">
+    <!-- LEFT PANEL: Today's Queue -->
+    <div class="queue-panel">
+      <div class="medical-card">
+        <div class="split-header">
+          <div>
+            <h2 class="section-title mb-0">
+              @if (isTodaySelected()) {
+                Today's Queue
+              } @else {
+                Scheduled Queue
+              }
+            </h2>
+            <span class="sub-text">{{ selectedDate() }}</span>
+          </div>
+          <div class="queue-header-actions">
+            <div class="theme-date-picker-pill" (click)="queuePicker.open()" title="Click to change date">
+              <mat-icon class="calendar-pill-icon">calendar_month</mat-icon>
+              <span class="selected-date-label">{{ selectedDateFormatted() }}</span>
+              <mat-icon class="dropdown-chevron-icon">arrow_drop_down</mat-icon>
+
+              <!-- Standard Angular Material Datepicker popup -->
+              <input 
+                matInput 
+                [matDatepicker]="queuePicker" 
+                [value]="selectedDateObj()" 
+                (dateChange)="onMatDateSelected($event.value)" 
+                class="hidden-native-input"
+                aria-label="Select Date">
+              <mat-datepicker #queuePicker panelClass="mediflow-calendar-panel"></mat-datepicker>
+            </div>
+
+            <button 
+              type="button" 
+              class="btn-theme-pill" 
+              [class.active]="isTodaySelected()" 
+              (click)="setToday()" 
+              title="Jump to Today">
+              Today
+            </button>
+            <span class="badge badge-booked">{{ myTodayAppointments().length }} Total</span>
+          </div>
+        </div>
+
+        @if (isLoadingAppointments()) {
+          <div class="p-3 text-center text-secondary loading-queue-pill">
+            <mat-icon class="inline-mat-icon spin-icon">sync</mat-icon> Loading appointments...
+          </div>
+        }
+
+        <div class="queue-list">
+          @for (apt of myTodayAppointments(); track apt.id) {
+            <div 
+              class="queue-card"
+              [class.active]="selectedAppointment()?.id === apt.id"
+              [class.in-consult]="apt.status === 'IN_CONSULTATION'"
+              (click)="selectAppointment(apt)">
+              
+              <div class="token-col">
+                <span class="token-pill">{{ apt.tokenNumber }}</span>
+                <span class="token-time">{{ apt.timeSlot }}</span>
+              </div>
+
+              <div class="patient-col">
+                <div class="patient-name-row">
+                  <strong>{{ apt.patientName }}</strong>
+                  @if (apt.patientAge) {
+                    <span class="patient-meta">({{ apt.patientAge }}y, {{ apt.patientGender }})</span>
+                  }
+                </div>
+                @if (apt.reason) {
+                  <span class="patient-reason">{{ apt.reason }}</span>
+                }
+                <div class="status-row">
+                  <span class="badge badge-{{ apt.status.toLowerCase().replace('_', '-') }}">
+                    {{ apt.status.replace('_', ' ') }}
+                  </span>
+                </div>
+              </div>
+
+              @if (apt.status === 'WAITING' || apt.status === 'CHECKED_IN') {
+                <div class="action-col">
+                  <button type="button" class="btn btn-primary btn-sm" (click)="startConsultation(apt); $event.stopPropagation()">
+                    Call <mat-icon class="inline-mat-icon">arrow_forward</mat-icon>
+                  </button>
+                </div>
+              }
+            </div>
+          } @empty {
+            <div class="empty-state">
+              No appointments scheduled for today.
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT PANEL: EMR & FAST PRESCRIPTION BUILDER -->
+    <div class="emr-panel">
+      @if (selectedAppointment()) {
+        <div class="consultation-workspace">
+          
+          <!-- Patient Header Ribbon -->
+          <div class="medical-card patient-banner">
+            <div class="patient-core-info">
+              <div class="patient-avatar">{{ selectedAppointment()!.patientName.charAt(0) }}</div>
+              <div>
+                <h3 class="pat-heading">{{ selectedAppointment()!.patientName }}</h3>
+                <div class="pat-tags">
+                  <span class="tag">Token: <strong>{{ selectedAppointment()!.tokenNumber }}</strong></span>
+                  <span class="tag">Slot: {{ selectedAppointment()!.timeSlot }}</span>
+                  @if (selectedPatient()?.age) {
+                    <span class="tag">Age: <strong>{{ selectedPatient()?.age }}y</strong></span>
+                  }
+                  @if (selectedPatient()?.gender) {
+                    <span class="tag">Gender: <strong>{{ selectedPatient()?.gender }}</strong></span>
+                  }
+                  @if (selectedPatient()?.bloodGroup) {
+                    <span class="tag">Blood: <strong>{{ selectedPatient()?.bloodGroup }}</strong></span>
+                  }
+                  @if (selectedPatient()?.allergies?.length) {
+                    <span class="tag alert-tag">
+                      <mat-icon class="inline-mat-icon">warning</mat-icon> Allergy: {{ selectedPatient()?.allergies?.join(', ') }}
+                    </span>
+                  }
+                </div>
+              </div>
+            </div>
+
+            <div class="consultation-actions">
+              <button type="button" class="btn btn-outline btn-sm" (click)="showHistoryDrawer.set(!showHistoryDrawer())">
+                <mat-icon class="inline-mat-icon">history</mat-icon> Past History ({{ patientPastPrescriptions().length }})
+              </button>
+              @if (selectedAppointment()!.status === 'IN_CONSULTATION') {
+                <button 
+                  type="button" 
+                  class="btn btn-emerald btn-sm"
+                  (click)="completeAndSavePrescription()">
+                  <mat-icon class="inline-mat-icon">check</mat-icon> Save &amp; Complete
+                </button>
+              }
+            </div>
+          </div>
+
+          <!-- Past History Drawer (Collapsible) -->
+          @if (showHistoryDrawer()) {
+            <div class="medical-card history-drawer">
+              <div class="split-header">
+                <h4 class="section-title mb-0">Past Medical Prescriptions & Visits</h4>
+                <button type="button" class="btn btn-secondary btn-sm" (click)="showHistoryDrawer.set(false)">
+                  <mat-icon class="inline-mat-icon">close</mat-icon>
+                </button>
+              </div>
+              @for (pastRx of patientPastPrescriptions(); track pastRx.id) {
+                <div class="past-rx-item">
+                  <div class="past-rx-header" style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
+                    <div>
+                      <strong style="display: block; font-size: 0.95rem; color: #1e293b; margin-bottom: 2px;">{{ pastRx.diagnosis }}</strong>
+                      <span class="sub-text" style="display: block; font-size: 0.775rem; color: #64748b; margin-top: 2px;">
+                        Issued on {{ (pastRx.createdAt || pastRx.issuedAt) | date:'mediumDate' }}
+                      </span>
+                    </div>
+                    <div style="display:flex;gap:6px;flex-shrink:0;">
+                      <button type="button" class="btn btn-outline btn-sm" (click)="viewPastPrescription(pastRx)" title="View Details">
+                        <mat-icon class="inline-mat-icon">visibility</mat-icon> View
+                      </button>
+                      <button type="button" class="btn btn-outline btn-sm" (click)="downloadPastPrescription(pastRx)" title="Download PDF">
+                        <mat-icon class="inline-mat-icon">download</mat-icon> Download
+                      </button>
+                      @if (!isCompletedAppointment()) {
+                        <button type="button" class="btn btn-outline btn-sm" (click)="clonePreviousPrescription(pastRx)">
+                          <mat-icon class="inline-mat-icon">content_copy</mat-icon> Copy to Active Rx
+                        </button>
+                      }
+                    </div>
+                  </div>
+                  <div class="past-med-pills">
+                    @for (m of pastRx.medicines || pastRx.items; track m.medicineName) {
+                      <span class="past-med-pill">
+                        <mat-icon class="inline-mat-icon">medication</mat-icon> 
+                        {{ m.medicineName }} ({{ m.timing || m.frequency || '1-0-1' }}) - {{ m.durationDays || m.duration || 5 }} Days
+                      </span>
+                    }
+                  </div>
+                </div>
+              } @empty {
+                <div class="sub-text">
+                  No prior visit history recorded for this patient.
+                </div>
+              }
+            </div>
+          }
+
+          @if (isCompletedAppointment()) {
+            <!-- ══════════════════════════════════════════════════════════════════ -->
+            <!-- COMPLETED APPOINTMENT: Read-only prescription details view        -->
+            <!-- ══════════════════════════════════════════════════════════════════ -->
+            @if (isLoadingCompletedRx()) {
+              <div class="medical-card p-5 text-center" style="display:flex;align-items:center;justify-content:center;gap:12px;color:#6366f1;font-weight:500;">
+                <mat-icon class="spin-icon">sync</mat-icon> Loading prescription...
+              </div>
+            } @else if (completedRx()) {
+              <div class="medical-card rx-view-card">
+                <!-- Header: Diagnosis + Prescription ID -->
+                <div class="rx-view-header">
+                  <div>
+                    <span class="rx-view-label">Diagnosis</span>
+                    <h3 class="rx-view-diagnosis">{{ completedRx().diagnosis }}</h3>
+                  </div>
+                  <span class="rx-view-id">℞ {{ completedRx().prescriptionId }}</span>
+                </div>
+
+                @if (completedRx().notes) {
+                  <div class="rx-view-notes">
+                    <mat-icon class="inline-mat-icon">notes</mat-icon>
+                    <span>{{ completedRx().notes }}</span>
+                  </div>
+                }
+
+                <!-- Medicines Table -->
+                <div class="rx-view-section">
+                  <h4 class="rx-view-section-title">
+                    <mat-icon class="inline-mat-icon">medication</mat-icon> Medicines
+                  </h4>
+                  <table class="rx-detail-table">
+                    <thead>
+                      <tr>
+                        <th>#</th>
+                        <th>Medicine</th>
+                        <th>Dosage</th>
+                        <th>Frequency (M-A-N)</th>
+                        <th>Duration</th>
+                        <th>Instructions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @for (med of completedRx().medicines; track med.medicineName; let idx = $index) {
+                        <tr>
+                          <td>{{ idx + 1 }}</td>
+                          <td><strong>{{ med.medicineName }}</strong></td>
+                          <td>{{ med.dosage }}</td>
+                          <td class="mono">{{ med.morningQty }}-{{ med.afternoonQty }}-{{ med.nightQty }}{{ med.timing ? ' (' + med.timing + ')' : '' }}</td>
+                          <td>{{ med.durationDays }} Days</td>
+                          <td>{{ med.instructions }}</td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                </div>
+
+                <!-- Advice / Investigations -->
+                @if (completedRx().investigationsAdvised?.length) {
+                  <div class="rx-view-section">
+                    <h4 class="rx-view-section-title">
+                      <mat-icon class="inline-mat-icon">checklist</mat-icon> Advice &amp; Investigations
+                    </h4>
+                    <ul class="rx-advice-list">
+                      @for (adv of completedRx().investigationsAdvised; track adv) {
+                        <li>{{ adv }}</li>
+                      }
+                    </ul>
+                  </div>
+                }
+
+                <!-- Follow-up date -->
+                @if (completedRx().followUpDate) {
+                  <div class="rx-view-followup">
+                    <mat-icon class="inline-mat-icon">event</mat-icon>
+                    Follow-up: <strong>{{ completedRx().followUpDate | date:'fullDate' }}</strong>
+                  </div>
+                }
+
+                <!-- Download actions -->
+                <div class="rx-view-actions">
+                  <button type="button" class="btn btn-primary" (click)="downloadCompletedRxViaApi()" title="Downloads via API first, falls back to jsPDF">
+                    <mat-icon class="inline-mat-icon">download</mat-icon> Download PDF
+                  </button>
+                  <button type="button" class="btn btn-outline" (click)="downloadCompletedRxViaJsPdf()" title="Generate PDF locally (always works)">
+                    <mat-icon class="inline-mat-icon">picture_as_pdf</mat-icon> Generate PDF
+                  </button>
+                </div>
+              </div>
+            } @else {
+              <div class="medical-card text-center p-5" style="border:1.5px dashed #cbd5e1;border-radius:16px;color:#64748b;">
+                <mat-icon style="font-size:2.5rem;width:2.5rem;height:2.5rem;display:block;margin:0 auto 0.5rem;">description_off</mat-icon>
+                No prescription found for this appointment.
+              </div>
+            }
+          } @else if (isConsultationDisabled()) {
+            <div class="medical-card text-center p-5 mt-4" style="border: 1.5px dashed #f43f5e; background: rgba(244, 63, 94, 0.015); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.75rem; border-radius: 16px;">
+              <mat-icon style="font-size: 3.5rem; width: 3.5rem; height: 3.5rem; color: #f43f5e; margin: 0;">block</mat-icon>
+              <h3 style="font-size: 1.25rem; font-weight: 700; color: #1e293b; margin: 0;">Clinical Assessment Disabled</h3>
+              <p style="color: #64748b; font-size: 0.95rem; margin: 0 auto; max-width: 360px; line-height: 1.5;">
+                This appointment has been <strong>{{ selectedAppointment()!.status.toLowerCase() }}</strong>. Clinical assessment and prescriptions are disabled for rescheduled or cancelled visits.
+              </p>
+            </div>
+          } @else {
+            <!-- Consultation Notes & Diagnosis -->
+            <div class="medical-card mb-4">
+            <div class="section-header-row">
+              <h3 class="section-title mb-0">Clinical Assessment</h3>
+
+            </div>
+
+            <div class="form-grid-2 mt-3">
+              <div class="form-group">
+                <label>Chief Complaints & Symptoms</label>
+                <input 
+                  type="text" 
+                  class="form-control" 
+                  [(ngModel)]="consultationForm.symptomsText" 
+                  placeholder="e.g. High grade fever, throbbing headache, body ache">
+              </div>
+
+              <div class="form-group position-relative">
+                <label>Clinical Diagnosis</label>
+                <div class="diagnosis-input-wrap">
+                  <input 
+                    type="text" 
+                    class="form-control diagnosis-input" 
+                    [ngModel]="consultationForm.diagnosis" 
+                    (ngModelChange)="onDiagnosisInput($event)"
+                    (focus)="onDiagnosisInput(consultationForm.diagnosis)"
+                    placeholder="Search / Enter Diagnosis (e.g. Bronchitis, Hypertension)...">
+                  
+                  @if (showDiagnosisDropdown() && diagnosisSuggestions().length > 0) {
+                    <div class="diagnosis-dropdown-menu">
+                      @for (d of diagnosisSuggestions(); track d.diseaseId || d.id || $index) {
+                        <div class="diagnosis-suggestion-item" (click)="selectDiagnosis(d)">
+                          <div class="diag-name">
+                            <mat-icon class="diag-icon">health_and_safety</mat-icon>
+                            <strong>{{ d.diseaseName || d.name }}</strong>
+                          </div>
+                          @if (d.category) {
+                            <span class="diag-category">{{ d.category }}</span>
+                          }
+                        </div>
+                      }
+                    </div>
+                  }
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Clinical Examination & Vitals Notes (Optional)</label>
+              <textarea 
+                class="form-control" 
+                rows="2" 
+                [(ngModel)]="consultationForm.clinicalNotes"
+                placeholder="BP: 120/80 mmHg, Pulse: 78 bpm, SpO2: 99%, Chest: Clear"></textarea>
+            </div>
+          </div>
+
+          <!-- FAST PRESCRIPTION BUILDER MODULE -->
+          <div class="medical-card fast-rx-card">
+            <div class="rx-header">
+              <div>
+                <h3 class="section-title mb-0">Prescription Builder</h3>
+                <p class="sub-text">Typeahead search, 1-click dosage chips, duration pills, and instructions.</p>
+              </div>
+
+            </div>
+
+            <!-- Medicine Search & Add Row -->
+            <div class="med-search-box">
+              <div class="search-input-wrap">
+                <mat-icon class="search-icon">search</mat-icon>
+                <input 
+                  type="text" 
+                  class="med-search-input" 
+                  [(ngModel)]="medSearchQuery" 
+                  (input)="filterMedicines()"
+                  (keydown.enter)="addCustomMedicineToRx(); $event.preventDefault()"
+                  placeholder="Search medicine by brand or generic name (e.g. Paracetamol, Pan 40, Augmentin)...">
+              </div>
+
+              <!-- Autocomplete Dropdown List -->
+              @if (medSearchQuery) {
+                <div class="med-dropdown">
+                  @for (med of searchResults; track med.id) {
+                    <div class="med-search-item" (click)="addMedicineToRx(med)">
+                      <div class="med-item-title">
+                        <strong>{{ med.name }}</strong>
+                        <span class="med-strength">{{ med.strength }}</span>
+                        <span class="med-form">({{ med.form }})</span>
+                      </div>
+                      <div class="med-item-generic">{{ med.genericName }} • {{ med.category }}</div>
+                    </div>
+                  }
+                  <div class="med-search-item custom-add-item" (click)="addCustomMedicineToRx()" style="border-top: 1px solid #e5e7eb; background-color: #f9fafb; color: #4f46e5; display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 10px 12px; font-weight: 500;">
+                    <mat-icon style="font-size: 1.1rem; width: 1.1rem; height: 1.1rem;">add_circle</mat-icon>
+                    <span>Add custom medicine: <strong>"{{ medSearchQuery }}"</strong></span>
+                  </div>
+                </div>
+              }
+            </div>
+
+            <!-- Prescription Items Table -->
+            @if (rxItems.length > 0) {
+              <div class="prescribed-items-list">
+                @for (item of rxItems; track $index; let i = $index) {
+                  <div class="rx-item-row">
+                    <div class="rx-item-header">
+                      <span class="item-num">#{{ i + 1 }}</span>
+                      <strong class="item-name">{{ item.medicineName }}</strong>
+                      <span class="item-strength">{{ item.strength }}</span>
+                      <span class="item-form">{{ item.form }}</span>
+                      <button type="button" class="delete-btn" (click)="removeRxItem(i)">
+                        <mat-icon class="inline-mat-icon">delete</mat-icon>
+                      </button>
+                    </div>
+
+                    <div class="rx-item-controls">
+                      <!-- Quick Frequency Chips -->
+                      <div class="control-group">
+                        <span class="control-label">Frequency:</span>
+                        <div class="chip-group">
+                          <span class="chip" [class.active]="item.frequency.startsWith('1-0-0')" (click)="item.frequency = '1-0-0 (Morning)'">1-0-0</span>
+                          <span class="chip" [class.active]="item.frequency.startsWith('0-0-1')" (click)="item.frequency = '0-0-1 (Night)'">0-0-1</span>
+                          <span class="chip" [class.active]="item.frequency.startsWith('1-0-1')" (click)="item.frequency = '1-0-1 (BD)'">1-0-1</span>
+                          <span class="chip" [class.active]="item.frequency.startsWith('1-1-1')" (click)="item.frequency = '1-1-1 (TDS)'">1-1-1</span>
+                          <span class="chip" [class.active]="item.frequency.startsWith('SOS')" (click)="item.frequency = 'SOS (When Pain/Fever)'">SOS</span>
+                        </div>
+                      </div>
+
+                      <!-- Quick Duration Badges -->
+                      <div class="control-group">
+                        <span class="control-label">Duration:</span>
+                        <div class="chip-group">
+                          <span class="chip" [class.active]="item.duration === '3 Days'" (click)="item.duration = '3 Days'">3d</span>
+                          <span class="chip" [class.active]="item.duration === '5 Days'" (click)="item.duration = '5 Days'">5d</span>
+                          <span class="chip" [class.active]="item.duration === '7 Days'" (click)="item.duration = '7 Days'">7d</span>
+                          <span class="chip" [class.active]="item.duration === '10 Days'" (click)="item.duration = '10 Days'">10d</span>
+                          <span class="chip" [class.active]="item.duration === '14 Days'" (click)="item.duration = '14 Days'">14d</span>
+                          <span class="chip" [class.active]="item.duration === '30 Days'" (click)="item.duration = '30 Days'">1mo</span>
+                        </div>
+                      </div>
+
+                      <!-- Route -->
+                      <div class="control-group">
+                        <span class="control-label">Route:</span>
+                        <mat-form-field appearance="outline" class="standard-mat-select-field" style="width: 120px;" subscriptSizing="dynamic">
+                          <mat-select [(ngModel)]="item.route">
+                            <mat-option value="Oral">Oral</mat-option>
+                            <mat-option value="Topical">Topical</mat-option>
+                            <mat-option value="Inhalation">Inhalation</mat-option>
+                            <mat-option value="IV/IM">IV / IM</mat-option>
+                            <mat-option value="Drops">Eye/Ear Drops</mat-option>
+                          </mat-select>
+                        </mat-form-field>
+                      </div>
+                    </div>
+
+                    <div class="rx-instructions-row">
+                      <input 
+                        type="text" 
+                        class="instruction-input" 
+                        [(ngModel)]="item.instructions" 
+                        placeholder="Special instructions (e.g. Take after food with warm water)">
+                    </div>
+                  </div>
+                }
+              </div>
+            } @else {
+              <div class="empty-rx-notice">
+                No medicines added yet. Use the search bar above or choose a Quick Template to populate medications in 1-click.
+              </div>
+            }
+
+            <!-- Quick Clinical Advice & Special Instructions -->
+            <div class="advice-section">
+              <label class="control-label"><strong>Clinical Advice & Special Instructions</strong></label>
+              <div class="advice-chips">
+                @for (adv of standardAdviceList; track adv) {
+                  <span 
+                    class="chip"
+                    [class.active]="selectedAdvice.includes(adv)"
+                    (click)="toggleAdvice(adv)">
+                    + {{ adv }}
+                  </span>
+                }
+                @for (adv of getCustomAdvices(); track adv) {
+                  <span 
+                    class="chip active"
+                    (click)="toggleAdvice(adv)"
+                    style="display: inline-flex; align-items: center; gap: 4px;">
+                    ✓ {{ adv }}
+                    <mat-icon style="font-size: 1rem; width: 1rem; height: 1rem; cursor: pointer; color: #ffffff; margin-left: 4px;">cancel</mat-icon>
+                  </span>
+                }
+              </div>
+              <div class="form-group mb-0">
+                <input 
+                  type="text" 
+                  class="form-control" 
+                  [(ngModel)]="customAdviceText" 
+                  (keydown.enter)="addCustomAdvice(); $event.preventDefault()"
+                  placeholder="Type custom doctor instructions or dietary restrictions...">
+              </div>
+            </div>
+
+            <!-- Follow-Up Shortcuts & Material Calendar Datepicker -->
+            <div class="followup-section">
+              <span class="control-label"><strong>Schedule Follow-up:</strong></span>
+              <div class="chip-group">
+                <span class="chip" [class.active]="followUpDays === 3" (click)="setFollowUp(3)">In 3 Days</span>
+                <span class="chip" [class.active]="followUpDays === 5" (click)="setFollowUp(5)">In 5 Days</span>
+                <span class="chip" [class.active]="followUpDays === 7" (click)="setFollowUp(7)">In 7 Days</span>
+                <span class="chip" [class.active]="followUpDays === 15" (click)="setFollowUp(15)">In 15 Days</span>
+                <span class="chip" [class.active]="followUpDays === 30" (click)="setFollowUp(30)">In 1 Month</span>
+              </div>
+              <!-- Angular Material Custom Datepicker -->
+              <div class="mat-date-field-wrap custom-followup-picker" style="display: inline-block; vertical-align: middle;">
+                <input 
+                  class="form-control mat-date-custom-input" 
+                  [matDatepicker]="followUpPicker" 
+                  [(ngModel)]="followUpDateObj" 
+                  (ngModelChange)="onCustomFollowUpDateChange($event)" 
+                  placeholder="Custom Date..."
+                  readonly
+                  (click)="followUpPicker.open()"
+                  style="min-height: 38px; font-size: 0.825rem; max-width: 170px; display: inline-block; vertical-align: middle; border: 1px solid #ccc; border-radius: 4px; padding: 6px 12px; cursor: pointer;">
+                <mat-datepicker-toggle matIconSuffix [for]="followUpPicker" class="mat-date-toggle-btn" style="display: inline-block; vertical-align: middle;"></mat-datepicker-toggle>
+                <mat-datepicker #followUpPicker></mat-datepicker>
+              </div>
+              @if (followUpDate) {
+                <span class="followup-target">
+                  Target Date: <strong>{{ followUpDate | date:'fullDate' }}</strong>
+                </span>
+              }
+            </div>
+
+            <!-- Action Bar -->
+            <div class="rx-final-bar">
+              <button type="button" class="btn btn-outline" (click)="previewPrescription()" [disabled]="isSavingPrescription()">
+                <mat-icon class="inline-mat-icon">visibility</mat-icon> PDF Preview
+              </button>
+              <button 
+                type="button" 
+                class="btn btn-primary btn-lg" 
+                (click)="completeAndSavePrescription()" 
+                [disabled]="isSavingPrescription()">
+                @if (isSavingPrescription()) {
+                  <mat-icon class="inline-mat-icon spin-icon">sync</mat-icon> Saving Prescription...
+                } @else {
+                  <mat-icon class="inline-mat-icon">check_circle</mat-icon> Complete & Issue Prescription
+                }
+              </button>
+            </div>
+          </div>
+          }
+
+        </div>
+      } @else {
+        <div class="medical-card no-selection-card">
+          <div class="empty-icon">
+            <mat-icon style="font-size: 3rem; width: 3rem; height: 3rem;">stethoscope</mat-icon>
+          </div>
+          <h3>No Patient Selected</h3>
+          <p class="sub-text">Please click on a waiting patient from today's queue on the left to begin consultation.</p>
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- PRINTABLE PRESCRIPTION MODAL -->
+  @if (showPrintModal() && activePreviewRx()) {
+    <div class="modal-overlay">
+      <div class="modal-box printable-document">
+        <div class="split-header no-print">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <h3>Digital Prescription Preview</h3>
+            @if (isViewingRx()) {
+              <span class="badge" style="background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;font-size:0.7rem;padding:3px 10px;border-radius:20px;font-weight:600;letter-spacing:0.04em;">READ-ONLY</span>
+            }
+          </div>
+          <div class="modal-top-actions">
+            <button type="button" class="btn btn-primary btn-sm" (click)="downloadPrescriptionPdf()" title="Download via backend API first, falls back to jsPDF if unavailable">
+              <mat-icon class="inline-mat-icon">download</mat-icon> Download PDF
+            </button>
+            <button type="button" class="btn btn-outline btn-sm" (click)="pdfService.generatePrescriptionPdf(activePreviewRx()!, { action: 'download' })" title="Generate PDF locally using jsPDF">
+              <mat-icon class="inline-mat-icon">picture_as_pdf</mat-icon> Generate PDF
+            </button>
+            <button type="button" class="btn btn-secondary btn-sm" (click)="printPrescriptionPdf()">
+              <mat-icon class="inline-mat-icon">print</mat-icon> Print PDF
+            </button>
+            <button type="button" class="btn btn-secondary btn-sm" (click)="showPrintModal.set(false); isViewingRx.set(false); viewRxPrescriptionId.set(null)">
+              <mat-icon class="inline-mat-icon">close</mat-icon> Close
+            </button>
+          </div>
+        </div>
+
+        <!-- Prescription Layout -->
+        <div class="rx-letterhead">
+          <div class="clinic-header">
+            <div class="clinic-title-wrap">
+              <h2 class="rx-clinic-name">{{ activePreviewRx()!.clinicName }}</h2>
+              <p class="rx-clinic-addr">{{ db.currentClinic().address }}, {{ db.currentClinic().city }}</p>
+              <p class="rx-clinic-contact">Phone: {{ db.currentClinic().contact }} • Reg: {{ db.currentClinic().regNumber }}</p>
+            </div>
+            <div class="doctor-badge-print">
+              <h3>{{ activePreviewRx()!.doctorName }}</h3>
+              <p>{{ activePreviewRx()!.doctorSpecialization }}</p>
+              <p>Reg No: {{ activePreviewRx()!.doctorRegNo }}</p>
+            </div>
+          </div>
+
+          <hr class="rx-divider"/>
+
+          <div class="rx-patient-details-grid">
+            <div><strong>Patient Name:</strong> {{ activePreviewRx()!.patientName }}</div>
+            <div><strong>Age / Gender:</strong> {{ activePreviewRx()!.patientAge }} Yrs / {{ activePreviewRx()!.patientGender }}</div>
+            <div><strong>Prescription No:</strong> <span class="mono">{{ activePreviewRx()!.prescriptionNumber }}</span></div>
+            <div><strong>Date:</strong> {{ activePreviewRx()!.issuedAt | date:'medium' }}</div>
+          </div>
+
+          <div class="rx-clinical-summary">
+            <p><strong>Diagnosis:</strong> {{ activePreviewRx()!.diagnosis }}</p>
+            @if (activePreviewRx()!.symptoms.length) {
+              <p><strong>Symptoms:</strong> {{ activePreviewRx()!.symptoms.join(', ') }}</p>
+            }
+            @if (activePreviewRx()!.clinicalNotes) {
+              <p><strong>Notes:</strong> {{ activePreviewRx()!.clinicalNotes }}</p>
+            }
+          </div>
+
+          <div class="rx-symbol">℞</div>
+
+          <table class="rx-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Medicine Name & Strength</th>
+                <th>Dosage / Frequency</th>
+                <th>Duration</th>
+                <th>Instructions</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (item of activePreviewRx()!.items; track item.id; let idx = $index) {
+                <tr>
+                  <td>{{ idx + 1 }}</td>
+                  <td>
+                    <strong>{{ item.medicineName }}</strong>
+                    <div class="generic-sub">{{ item.genericName }} ({{ item.form }})</div>
+                  </td>
+                  <td>{{ item.frequency }}</td>
+                  <td>{{ item.duration }}</td>
+                  <td>{{ item.instructions }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+
+          @if (activePreviewRx()!.advice.length || activePreviewRx()!.customAdvice) {
+            <div class="rx-advice-box">
+              <h4>General Advice & Lifestyle Guidelines:</h4>
+              <ul>
+                @for (adv of activePreviewRx()!.advice; track adv) {
+                  <li>{{ adv }}</li>
+                }
+                @if (activePreviewRx()!.customAdvice) {
+                  <li>{{ activePreviewRx()!.customAdvice }}</li>
+                }
+              </ul>
+            </div>
+          }
+
+          <div class="rx-footer-row">
+            @if (activePreviewRx()!.followUpDate) {
+              <div class="rx-followup">
+                <strong>Follow-up Consultation:</strong> {{ activePreviewRx()!.followUpDate | date:'fullDate' }}
+              </div>
+            }
+            <div class="rx-signature-block">
+              <div class="sig-line"></div>
+              <strong>{{ activePreviewRx()!.doctorName }}</strong>
+              <p>Authorized Medical Practitioner</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  }
+
+  </div>
+}

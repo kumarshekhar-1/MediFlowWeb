@@ -1,0 +1,113 @@
+@if (isProfileIncomplete) {
+  <app-patient-profile-completion (profileCompleted)="patientSession.refreshPatient()"></app-patient-profile-completion>
+} @else {
+  <div class="content-pad">
+    <!-- Live Token & Active Appointment Banner (Very Top) -->
+    @if (activeAppointment) {
+      <div class="live-tracker-banner" style="margin-bottom: 2rem;">
+        <div class="tracker-left">
+          <span class="live-pulse-badge"><mat-icon class="inline-mat-icon">sensors</mat-icon> LIVE QUEUE TRACKER</span>
+          <h3 class="tracker-title">Appointment with {{ activeAppointment.doctorName }}</h3>
+          <p class="tracker-meta">
+            {{ activeAppointment.appointmentDate }} at {{ activeAppointment.timeSlot }} • {{ activeAppointment.doctorSpecialization }}
+          </p>
+          <div class="status-wrap">
+            Status: <span class="badge badge-{{ activeAppointment.status.toLowerCase().replace('_', '-') }}">
+              {{ activeAppointment.status.replace('_', ' ') }}
+            </span>
+          </div>
+        </div>
+
+        <div class="tracker-center">
+          <div class="token-large-display">
+            <span class="t-label">Your Token</span>
+            <span class="t-num">{{ activeAppointment.tokenNumber }}</span>
+          </div>
+        </div>
+
+        <div class="tracker-right">
+          <div class="wait-estimate-card">
+            <mat-icon class="est-icon">hourglass_top</mat-icon>
+            <div class="est-content-col">
+              <span class="est-label">Estimated Wait Time</span>
+              <strong class="est-time">{{ getEstimatedWaitTime(activeAppointment) }}</strong>
+              <span class="est-sub-text">Please remain near clinic waiting area</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- Patient Welcome Header -->
+    <div class="patient-hero">
+      <div class="hero-text">
+        <h1 class="page-title">Welcome, {{ currentPatient.name || 'Patient' }}</h1>
+        <p class="page-subtitle">Find top specialists, book appointments, track live queue token status and view your digital prescriptions.</p>
+      </div>
+      <div class="hero-actions">
+        <button type="button" class="btn btn-primary" (click)="switchTab('BOOKING')">
+          <mat-icon class="inline-mat-icon">calendar_month</mat-icon> Book New Appointment
+        </button>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="tab-nav mt-4">
+      <button type="button" class="tab-btn" [class.active]="activeTab === 'DISCOVERY'" (click)="switchTab('DISCOVERY')">
+        <mat-icon class="inline-mat-icon">medical_services</mat-icon> Find Doctors
+      </button>
+      <button type="button" class="tab-btn" [class.active]="activeTab === 'LOCATOR'" (click)="switchTab('LOCATOR')">
+        <mat-icon class="inline-mat-icon">location_on</mat-icon> Hospital &amp; Clinic Map
+      </button>
+      <button type="button" class="tab-btn" [class.active]="activeTab === 'BOOKING'" (click)="switchTab('BOOKING')">
+        <mat-icon class="inline-mat-icon">calendar_month</mat-icon> Book Appointment
+      </button>
+      <button type="button" class="tab-btn" [class.active]="activeTab === 'APPOINTMENTS'" (click)="switchTab('APPOINTMENTS')">
+        <mat-icon class="inline-mat-icon">event_available</mat-icon> My Appointments
+      </button>
+      <button type="button" class="tab-btn" [class.active]="activeTab === 'PRESCRIPTIONS'" (click)="switchTab('PRESCRIPTIONS')">
+        <mat-icon class="inline-mat-icon">medication</mat-icon> My Prescriptions
+      </button>
+    </div>
+
+    <!-- TAB: Hospital Map Locator & Distance Estimator -->
+    @if (activeTab === 'LOCATOR') {
+      <div class="tab-pane">
+        <app-hospital-map-locator (bookClinic)="onBookClinicFromMap($event)"></app-hospital-map-locator>
+      </div>
+    }
+
+    <!-- TAB 1: Doctor Discovery -->
+    @if (activeTab === 'DISCOVERY') {
+      <div class="tab-pane">
+        <app-patient-discovery (bookDoctor)="openBookingForDoctor($event)"></app-patient-discovery>
+      </div>
+    }
+
+    <!-- TAB 2: Book Appointment Wizard -->
+    @if (activeTab === 'BOOKING') {
+      <div class="tab-pane">
+        <app-patient-booking
+          [initialClinicId]="bookingClinicId"
+          [initialDoctorId]="bookingDoctorId"
+          (bookingCompleted)="onBookingCompleted()">
+        </app-patient-booking>
+      </div>
+    }
+
+    <!-- TAB: My Appointments History -->
+    @if (activeTab === 'APPOINTMENTS') {
+      <div class="tab-pane">
+        <app-patient-appointments (navigateToBooking)="switchTab('BOOKING')"></app-patient-appointments>
+      </div>
+    }
+
+    <!-- TAB 3: Prescriptions Archive -->
+    @if (activeTab === 'PRESCRIPTIONS') {
+      <div class="tab-pane">
+        <app-patient-prescriptions></app-patient-prescriptions>
+      </div>
+    }
+
+  </div>
+}

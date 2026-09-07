@@ -1,0 +1,34 @@
+<div class="material-calendar-card">
+  <!-- Header with Quick Date Action Chips -->
+  <div class="cal-quick-header">
+    <span class="cal-header-label"><mat-icon class="inline-mat-icon">calendar_month</mat-icon> Select Consultation Date</span>
+    @if (scheduleLabel) {
+      <div class="cal-schedule-label">
+        <mat-icon class="inline-mat-icon">schedule</mat-icon>
+        <span>{{ scheduleLabel }}</span>
+      </div>
+    } @else {
+      <div class="cal-quick-chips">
+        <button type="button" class="quick-chip" (click)="setToday()">Today</button>
+        <button type="button" class="quick-chip" (click)="setTomorrow()">Tomorrow</button>
+        <button type="button" class="quick-chip" (click)="setNextWeek()">Next Week</button>
+      </div>
+    }
+  </div>
+
+  <!-- Official Angular Material Calendar Component -->
+  <mat-calendar 
+    [selected]="selectedDateObj" 
+    [minDate]="minDate"
+    [dateFilter]="dateFilter"
+    (selectedChange)="onDateSelected($event)"
+    class="custom-mat-calendar">
+  </mat-calendar>
+
+  <div class="cal-selected-banner">
+    <div class="selected-pill">
+      <mat-icon class="cal-icon">event_available</mat-icon>
+      <span>Selected Date: <strong>{{ selectedDateObj ? (selectedDateObj | date:'fullDate') : 'Please select a date from calendar' }}</strong></span>
+    </div>
+  </div>
+</div>

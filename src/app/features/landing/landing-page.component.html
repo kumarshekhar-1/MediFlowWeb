@@ -1,0 +1,105 @@
+<div class="landing-container">
+  <!-- Hero Section -->
+  <header class="hero-section">
+    <div class="hero-badge">
+      <mat-icon class="inline-mat-icon">bolt</mat-icon> Next-Generation Healthcare OS
+    </div>
+    
+    <h1 class="hero-title">
+      Streamline Practice Management with <span class="gradient-text">MediFlow OS</span>
+    </h1>
+    
+    <p class="hero-subtitle">
+      Connect Clinic Owners, Doctors, Receptionists, and Patients in one unified, real-time operating system. 
+      Featuring fast prescription writing, live queue tokens, automated billing, and Google Maps distance discovery.
+    </p>
+
+    <!-- Call to Actions -->
+    <div class="hero-cta-group" style="margin-bottom: 1.25rem;">
+      <button type="button" class="btn btn-primary btn-hero" (click)="goToLogin()">
+        <mat-icon class="inline-mat-icon">login</mat-icon> Sign In / Login
+      </button>
+
+      <button type="button" class="btn btn-secondary btn-hero" (click)="goToRegisterClinic()">
+        <mat-icon class="inline-mat-icon">domain_add</mat-icon> Register Clinic
+      </button>
+
+      <button type="button" class="btn btn-outline btn-hero" (click)="goToRegisterPatient()">
+        <mat-icon class="inline-mat-icon">person_add</mat-icon> Patient Sign-Up
+      </button>
+    </div>
+
+    <div class="hero-cta-group" style="margin-bottom: 0px;">
+      <button type="button" class="btn btn-brand btn-hero highlight-book-btn" (click)="openQuickBookModal()">
+        <mat-icon class="inline-mat-icon">calendar_month</mat-icon> Book Appointment
+      </button>
+    </div>
+
+  </header>
+
+  <!-- Value Propositions & Feature Matrix -->
+  <section class="features-section">
+    <div class="section-badge">CORE CAPABILITIES</div>
+    <h2 class="section-heading">Engineered for Maximum Speed & Practice Efficiency</h2>
+
+    <div class="feature-cards-grid">
+      <div class="feature-card">
+        <div class="f-icon-box">
+          <mat-icon>medication</mat-icon>
+        </div>
+        <h3>Ultra-Fast Prescription System</h3>
+        <p>Search medications with autocomplete, select dosage frequency chips (1-0-1, TDS), 1-click clinical templates, and instant PDF print with doctor license.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="f-icon-box">
+          <mat-icon>schedule</mat-icon>
+        </div>
+        <h3>Real-Time Live Queue & Tokens</h3>
+        <p>Automated token generation upon check-in with dynamic wait time estimation for patients and full queue control for receptionists.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="f-icon-box">
+          <mat-icon>point_of_sale</mat-icon>
+        </div>
+        <h3>POS Invoicing & Multi-Payment</h3>
+        <p>Seamlessly generate tax invoices, apply discounts, collect payments via Cash, UPI QR, or Card, and issue instant printable receipts.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="f-icon-box">
+          <mat-icon>shield</mat-icon>
+        </div>
+        <h3>Multi-Tenant Architecture</h3>
+        <p>Strict data isolation per clinic, role-based access control, HIPAA / DPDP compliant immutable audit logs, and instant tenant switching.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Platform Stats Strip -->
+  <div class="stats-strip">
+    <div class="stat-item">
+      <span class="stat-num">{{ db.clinics().length }}+</span>
+      <span class="stat-lbl">Active Clinics</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-num">{{ db.doctors().length }}+</span>
+      <span class="stat-lbl">Specialist Doctors</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-num">{{ db.appointments().length }}+</span>
+      <span class="stat-lbl">Consultations Completed</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-num">&lt; 30s</span>
+      <span class="stat-lbl">Avg Prescription Time</span>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="landing-footer">
+    <p>© 2026 MediFlow OS. Production-Ready Multi-Tenant Healthcare Operating System.</p>
+  </footer>
+
+</div>

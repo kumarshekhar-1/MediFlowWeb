@@ -1,0 +1,165 @@
+<div class="content-pad">
+  <div class="medical-card" style="max-width: 650px; margin: 2rem auto; padding: 2rem;">
+    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;">
+      <div style="width: 52px; height: 52px; border-radius: 50%; background: #eff6ff; display: flex; align-items: center; justify-content: center; color: #2563eb; flex-shrink: 0;">
+        <mat-icon style="font-size: 2rem; width: 2rem; height: 2rem;">business</mat-icon>
+      </div>
+      <div>
+        <h2 style="font-size: 1.3rem; font-weight: 800; color: #0f172a; margin: 0;">Complete Clinic Registration</h2>
+        <p style="color: #64748b; font-size: 0.85rem; margin: 0.25rem 0 0;">
+          Provide your healthcare establishment details and verify your credentials to initialize Mediflow services.
+        </p>
+      </div>
+    </div>
+
+    @if (profileError()) {
+      <div class="api-feedback error mb-3" style="display: flex; align-items: center; gap: 8px; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); color: #ef4444; padding: 10px; border-radius: 6px; font-size: 0.88rem;">
+        <mat-icon>error</mat-icon>
+        <span>{{ profileError() }}</span>
+      </div>
+    }
+
+    <form [formGroup]="profileFormGroup" (ngSubmit)="submitProfileCompletion()" style="display: flex; flex-direction: column; gap: 1.25rem;">
+      
+      <div class="form-group">
+        <label class="form-label" style="font-weight: 700; font-size: 0.85rem; margin-bottom: 0.4rem;">Clinic / Hospital Name <span style="color: #ef4444;">*</span></label>
+        <input type="text" class="form-control" [class.input-error]="isInvalid('clinicName')" formControlName="clinicName" placeholder="e.g. Apollo Healthcare">
+        @if (isInvalid('clinicName')) {
+          <span style="color: #ef4444; font-size: 0.77rem; margin-top: 0.25rem; display: block; font-weight: 600;">
+            {{ getErrorMessage('clinicName') }}
+          </span>
+        }
+      </div>
+
+      <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 0.5rem;">
+        <div class="form-group" style="flex: 1; min-width: 250px;">
+          <label class="form-label" style="font-weight: 700; font-size: 0.85rem; margin-bottom: 0.4rem;">Clinic Owner Full Name <span style="color: #ef4444;">*</span></label>
+          <input type="text" class="form-control" [class.input-error]="isInvalid('ownerName')" formControlName="ownerName" placeholder="Dr. Ramesh Gupta">
+          @if (isInvalid('ownerName')) {
+            <span style="color: #ef4444; font-size: 0.77rem; margin-top: 0.25rem; display: block; font-weight: 600;">
+              {{ getErrorMessage('ownerName') }}
+            </span>
+          }
+        </div>
+
+        <div class="form-group" style="flex: 1; min-width: 250px;">
+          <label class="form-label" style="font-weight: 700; font-size: 0.85rem; margin-bottom: 0.4rem;">Official Email Address <span style="color: #ef4444;">*</span></label>
+          <input type="email" class="form-control" [class.input-error]="isInvalid('ownerEmail')" formControlName="ownerEmail" placeholder="owner@clinic.com">
+          @if (isInvalid('ownerEmail')) {
+            <span style="color: #ef4444; font-size: 0.77rem; margin-top: 0.25rem; display: block; font-weight: 600;">
+              {{ getErrorMessage('ownerEmail') }}
+            </span>
+          }
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 0.5rem;">
+        <div class="form-group" style="flex: 1; min-width: 250px;">
+          <label class="form-label" style="font-weight: 700; font-size: 0.85rem; margin-bottom: 0.4rem;">Mobile Phone Number <span style="color: #ef4444;">*</span></label>
+          <div class="input-with-icon">
+            <span class="input-icon">🇮🇳 +91</span>
+            <input type="tel" class="form-control with-icon" [class.input-error]="isInvalid('ownerPhoneNumber')" formControlName="ownerPhoneNumber" placeholder="9876543210" (keypress)="onlyDigits($event)" (paste)="onPasteDigits($event)">
+          </div>
+          @if (isInvalid('ownerPhoneNumber')) {
+            <span style="color: #ef4444; font-size: 0.77rem; margin-top: 0.25rem; display: block; font-weight: 600;">
+              {{ getErrorMessage('ownerPhoneNumber') }}
+            </span>
+          }
+        </div>
+
+        <div class="form-group" style="flex: 1; min-width: 250px;">
+          <label class="form-label" style="font-weight: 700; font-size: 0.85rem; margin-bottom: 0.4rem;">Medical Establishment License / Reg No <span style="color: #ef4444;">*</span></label>
+          <input type="text" class="form-control" [class.input-error]="isInvalid('clinicRegistrationNumber')" formControlName="clinicRegistrationNumber" placeholder="e.g. KA-MED-2025-9921">
+          @if (isInvalid('clinicRegistrationNumber')) {
+            <span style="color: #ef4444; font-size: 0.77rem; margin-top: 0.25rem; display: block; font-weight: 600;">
+              {{ getErrorMessage('clinicRegistrationNumber') }}
+            </span>
+          }
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" style="font-weight: 700; font-size: 0.85rem; margin-bottom: 0.4rem;">Specializations <span style="color: #ef4444;">*</span></label>
+        <p style="color: #64748b; font-size: 0.8rem; margin-bottom: 0.5rem;">Select all that apply:</p>
+        <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+          @for (spec of specializationOptions; track spec) {
+            <button type="button"
+              style="padding: 0.35rem 0.75rem; border-radius: 50px; font-size: 0.82rem; font-weight: 550; border: 1px solid #cbd5e1; cursor: pointer; transition: all 0.2s;"
+              [style.background]="isSpecializationSelected(spec) ? '#2563eb' : '#fff'"
+              [style.color]="isSpecializationSelected(spec) ? '#fff' : '#0f172a'"
+              [style.borderColor]="isSpecializationSelected(spec) ? '#2563eb' : '#cbd5e1'"
+              (click)="toggleSpecialization(spec)">
+              @if (isSpecializationSelected(spec)) {
+                <mat-icon style="font-size: 0.9rem; width: 0.9rem; height: 0.9rem; vertical-align: middle; margin-right: 2px;">check</mat-icon>
+              }
+              {{ spec }}
+            </button>
+          }
+        </div>
+      </div>
+
+      <div class="form-group mt-2">
+        <label class="form-label" style="font-weight: 700; font-size: 0.85rem; margin-bottom: 0.4rem;">Pinpoint Location on Map <span style="color: #ef4444;">*</span></label>
+        <app-map-pin-picker
+          [initialAddress]="mapAddress"
+          [initialLat]="mapLat"
+          [initialLng]="mapLng"
+          (locationSelected)="onMapLocationPicked($event)">
+        </app-map-pin-picker>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" style="font-weight: 700; font-size: 0.85rem; margin-bottom: 0.4rem;">Address Line <span style="color: #ef4444;">*</span></label>
+        <input type="text" class="form-control" [class.input-error]="isInvalid('addressLine')" formControlName="addressLine" placeholder="Flat / House No, Street, Landmark">
+        @if (isInvalid('addressLine')) {
+          <span style="color: #ef4444; font-size: 0.77rem; margin-top: 0.25rem; display: block; font-weight: 600;">
+            {{ getErrorMessage('addressLine') }}
+          </span>
+        }
+      </div>
+
+      <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 0.5rem;">
+        <div class="form-group" style="flex: 1; min-width: 250px;">
+          <label class="form-label" style="font-weight: 700; font-size: 0.85rem; margin-bottom: 0.4rem;">City <span style="color: #ef4444;">*</span></label>
+          <input type="text" class="form-control" [class.input-error]="isInvalid('city')" formControlName="city" placeholder="e.g. Bengaluru">
+          @if (isInvalid('city')) {
+            <span style="color: #ef4444; font-size: 0.77rem; margin-top: 0.25rem; display: block; font-weight: 600;">
+              {{ getErrorMessage('city') }}
+            </span>
+          }
+        </div>
+
+        <div class="form-group" style="flex: 1; min-width: 250px;">
+          <label class="form-label" style="font-weight: 700; font-size: 0.85rem; margin-bottom: 0.4rem;">State <span style="color: #ef4444;">*</span></label>
+          <input type="text" class="form-control" [class.input-error]="isInvalid('state')" formControlName="state" placeholder="e.g. Karnataka">
+          @if (isInvalid('state')) {
+            <span style="color: #ef4444; font-size: 0.77rem; margin-top: 0.25rem; display: block; font-weight: 600;">
+              {{ getErrorMessage('state') }}
+            </span>
+          }
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 0.5rem;">
+        <div class="form-group" style="flex: 1; max-width: calc(50% - 0.5rem); min-width: 250px;">
+          <label class="form-label" style="font-weight: 700; font-size: 0.85rem; margin-bottom: 0.4rem;">PIN Code <span style="color: #ef4444;">*</span></label>
+          <input type="text" class="form-control" [class.input-error]="isInvalid('pincode')" formControlName="pincode" placeholder="e.g. 560038" maxlength="6">
+          @if (isInvalid('pincode')) {
+            <span style="color: #ef4444; font-size: 0.77rem; margin-top: 0.25rem; display: block; font-weight: 600;">
+              {{ getErrorMessage('pincode') }}
+            </span>
+          }
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-lg mt-3" style="width: 100%; height: 48px;" [disabled]="isProfileSubmitting()">
+        @if (isProfileSubmitting()) {
+          <mat-icon class="inline-mat-icon spin-icon">sync</mat-icon> Verifying &amp; Initializing...
+        } @else {
+          <mat-icon class="inline-mat-icon">task_alt</mat-icon> Complete Registration &amp; Enter Dashboard
+        }
+      </button>
+
+    </form>
+  </div>
+</div>

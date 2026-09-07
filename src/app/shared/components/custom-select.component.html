@@ -1,0 +1,63 @@
+<div class="custom-select-root" [class.is-open]="isOpen()" [class.is-disabled]="disabled">
+  <!-- Trigger Button -->
+  <button type="button" class="select-trigger" (click)="toggleOpen()">
+    <div class="trigger-left">
+      @if (selectedOption()?.icon) {
+        <span class="opt-icon">{{ selectedOption()!.icon }}</span>
+      }
+      <span class="trigger-label" [class.is-placeholder]="!selectedOption()">
+        {{ selectedOption() ? selectedOption()!.label : placeholder }}
+      </span>
+      @if (selectedOption()?.badge) {
+        <span class="opt-badge">{{ selectedOption()!.badge }}</span>
+      }
+    </div>
+    <span class="chevron-arrow">▾</span>
+  </button>
+
+  <!-- Dropdown Popover Menu -->
+  @if (isOpen()) {
+    <div class="select-menu-popover">
+      @if (searchable && options.length > 4) {
+        <div class="menu-search-box">
+          <input 
+            type="text" 
+            class="search-input" 
+            placeholder="Type to filter..." 
+            [ngModel]="searchTerm()" 
+            (ngModelChange)="searchTerm.set($event)" 
+            (click)="$event.stopPropagation()"
+            autofocus>
+        </div>
+      }
+
+      <div class="options-list">
+        @for (opt of filteredOptions(); track opt.value) {
+          <div 
+            class="option-item" 
+            [class.selected]="opt.value === selectedValue"
+            (click)="selectOption(opt)">
+            <div class="opt-main">
+              @if (opt.icon) {
+                <span class="opt-icon">{{ opt.icon }}</span>
+              }
+              <div class="opt-text">
+                <span class="opt-title">{{ opt.label }}</span>
+                @if (opt.subLabel) {
+                  <span class="opt-sub">{{ opt.subLabel }}</span>
+                }
+              </div>
+            </div>
+            @if (opt.badge) {
+              <span class="opt-badge">{{ opt.badge }}</span>
+            }
+          </div>
+        }
+
+        @if (filteredOptions().length === 0) {
+          <div class="no-options-msg">No matching options found</div>
+        }
+      </div>
+    </div>
+  }
+</div>

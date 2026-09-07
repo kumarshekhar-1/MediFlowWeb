@@ -1,0 +1,155 @@
+<div class="appointments-header-bar">
+  <div>
+    <h2 class="section-title">My Consultation Appointments</h2>
+    <p class="sub-text">View and manage your scheduled clinic appointments and live queue tokens.</p>
+  </div>
+  <button type="button" class="btn btn-primary" (click)="navigateToBooking.emit()">
+    <mat-icon class="inline-mat-icon">add</mat-icon> Book New Appointment
+  </button>
+</div>
+
+
+
+@if (apiAppointmentsLoading) {
+  <div class="field-loading-badge p-6">
+    <mat-icon class="inline-mat-icon spin-icon">sync</mat-icon> Loading your appointments from server...
+  </div>
+} @else if (patientAppointments.length === 0) {
+  <div class="medical-card empty-appointments-card">
+    <mat-icon class="large-empty-icon">event_busy</mat-icon>
+    <h3>No Appointments Found</h3>
+    <p class="sub-text">You haven't scheduled any doctor appointments yet.</p>
+    <button type="button" class="btn btn-primary mt-4" (click)="navigateToBooking.emit()">
+      <mat-icon class="inline-mat-icon">calendar_month</mat-icon> Book Your First Appointment
+    </button>
+  </div>
+} @else {
+  <div class="appointments-grid">
+    @for (apt of patientAppointments; track apt.id) {
+      <div class="medical-card appointment-card hoverable">
+        <div class="apt-card-top">
+          <div class="apt-token-badge">
+            <span class="apt-token-num">{{ apt.tokenNumber }}</span>
+          </div>
+          <div class="apt-top-right">
+            <span class="badge badge-{{ apt.status.toLowerCase().replace('_', '-') }}">
+              {{ apt.status.replace('_', ' ') }}
+            </span>
+            @if (['CONFIRMED', 'PENDING_PAYMENT', 'BOOKED', 'WAITING'].includes(apt.status)) {
+              <div class="apt-quick-actions">
+                <button 
+                  type="button" 
+                  class="icon-action-btn" 
+                  (click)="openRescheduleModal(apt); $event.stopPropagation()" 
+                  title="Reschedule Appointment">
+                  <mat-icon class="inline-mat-icon">edit_calendar</mat-icon>
+                </button>
+                <button 
+                  type="button" 
+                  class="icon-action-btn danger" 
+                  (click)="openCancelModal(apt); $event.stopPropagation()" 
+                  title="Cancel Appointment">
+                  <mat-icon class="inline-mat-icon">cancel</mat-icon>
+                </button>
+              </div>
+            }
+          </div>
+        </div>
+
+        <div class="apt-doc-info">
+          <div class="apt-avatar" style="display: flex; align-items: center; justify-content: center;">
+            @if (apt.doctorName.includes('Doctor (')) {
+              <mat-icon style="font-size: 1.85rem; width: 1.85rem; height: 1.85rem;">person</mat-icon>
+            } @else {
+              {{ apt.doctorName.charAt(0) || 'D' }}
+            }
+          </div>
+          <div>
+            <h3 class="apt-doc-name">{{ apt.doctorName }}</h3>
+            @if (apt.doctorSpecialization) {
+              <span class="apt-doc-spec">{{ apt.doctorSpecialization }}</span>
+            }
+          </div>
+        </div>
+
+        <div class="apt-meta-details">
+          <div class="meta-row">
+            <mat-icon class="meta-icon">event</mat-icon>
+            <span><strong>{{ apt.appointmentDate }}</strong> at <strong>{{ apt.timeSlot }}</strong></span>
+          </div>
+          @if (apt.clinicName) {
+            <div class="meta-row">
+              <mat-icon class="meta-icon">business</mat-icon>
+              <span>{{ apt.clinicName }}</span>
+            </div>
+          }
+          @if (apt.reason) {
+            <div class="meta-row">
+              <mat-icon class="meta-icon">notes</mat-icon>
+              <span class="meta-reason">{{ apt.reason }}</span>
+            </div>
+          }
+          @if (apt.status === 'CANCELLED' && apt.cancelReason) {
+            <div class="meta-row cancel-reason-row">
+              <mat-icon class="meta-icon text-danger">cancel_presentation</mat-icon>
+              <span class="text-danger font-medium">Cancellation Reason: <em>{{ apt.cancelReason }}</em></span>
+            </div>
+          }
+        </div>
+
+        <div class="apt-card-footer">
+          <div class="apt-fee">
+            Fee: <strong>₹{{ apt.consultationFee }}</strong>
+          </div>
+
+          <div class="apt-footer-actions">
+            @if (apt.status === 'PENDING_PAYMENT') {
+              <button 
+                type="button" 
+                class="pay-now-pill" 
+                (click)="markPaymentComplete(apt); $event.stopPropagation()"
+                [disabled]="isConfirmingPayment === apt.id"
+                title="Click to complete payment">
+                @if (isConfirmingPayment === apt.id) {
+                  <mat-icon class="inline-mat-icon spin-icon">sync</mat-icon> Confirming...
+                } @else {
+                  <mat-icon class="inline-mat-icon">credit_card</mat-icon> Pay Now (₹{{ apt.consultationFee }})
+                }
+              </button>
+            } @else if (isCompletedStatus(apt.status)) {
+              <div style="display: flex; gap: 6px;">
+                <button 
+                  type="button" 
+                  class="btn btn-primary btn-xs" 
+                  style="padding: 4px 8px; font-size: 0.75rem; display: flex; align-items: center; gap: 4px;"
+                  [disabled]="rxLoading === apt.id"
+                  (click)="downloadAptPrescriptionPdf(apt); $event.stopPropagation()">
+                  <mat-icon style="font-size: 0.9rem; width: 0.9rem; height: 0.9rem;">download</mat-icon>
+                  Download Rx
+                </button>
+                <button 
+                  type="button" 
+                  class="btn btn-outline btn-xs" 
+                  style="padding: 4px 8px; font-size: 0.75rem; display: flex; align-items: center; gap: 4px;"
+                  [disabled]="rxLoading === apt.id"
+                  (click)="viewPrescription(apt); $event.stopPropagation()">
+                  <mat-icon style="font-size: 0.9rem; width: 0.9rem; height: 0.9rem;">visibility</mat-icon>
+                  View Rx
+                </button>
+              </div>
+            } @else {
+              <div class="apt-time-badge">
+                <mat-icon class="inline-mat-icon">timer</mat-icon> {{ getEstimatedWaitTime(apt) }}
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+}
+
+
+
+
+

@@ -1,0 +1,168 @@
+<div class="content-pad">
+  <div class="medical-card" style="max-width: 800px; margin: 2rem auto; padding: 2.5rem;">
+    <!-- Api feedback messages -->
+    @if (apiSuccess()) {
+      <div class="api-feedback success mb-4" style="display: flex; align-items: center; gap: 8px; background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.2); color: #22c55e; padding: 12px; border-radius: 6px; font-size: 0.9rem;">
+        <mat-icon>check_circle</mat-icon>
+        <span>{{ apiSuccess() }}</span>
+      </div>
+    }
+    @if (apiError()) {
+      <div class="api-feedback error mb-4" style="display: flex; align-items: center; gap: 8px; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); color: #ef4444; padding: 12px; border-radius: 6px; font-size: 0.9rem;">
+        <mat-icon>error</mat-icon>
+        <span>{{ apiError() }}</span>
+      </div>
+    }
+
+    <div class="auth-header">
+      <div class="auth-logo">
+        <mat-icon style="font-size: 3rem; width: 3rem; height: 3rem;">person_add</mat-icon>
+      </div>
+      <h2 class="auth-title">My Patient Health Profile</h2>
+      <p class="auth-desc">
+        Manage your personal records, emergency contact, and medical details (ID: <strong>{{ patientSession.patient()?.patientId || patientSession.currentPatientId() }}</strong>).
+      </p>
+    </div>
+
+    <form [formGroup]="patientForm" (ngSubmit)="submitPatient()">
+      <div class="form-section-title">Personal &amp; Contact Details</div>
+      <div class="form-grid-2">
+
+        <!-- Name -->
+        <div class="form-group">
+          <label>Full Name <span class="req-star">*</span></label>
+          <input type="text" class="form-control" [class.input-error]="hasError(patientForm, 'name')"
+            formControlName="name" placeholder="e.g. Rahul Kumar">
+          @if (hasError(patientForm, 'name', 'required')) {
+            <span class="field-error">Name is required</span>
+          }
+        </div>
+
+        <!-- Phone Number (Disabled) -->
+        <div class="form-group">
+          <label>Mobile Number</label>
+          <div class="input-with-icon">
+            <span class="input-icon">🇮🇳 +91</span>
+            <input type="tel" class="form-control with-icon disabled-input"
+              formControlName="phoneNumber"
+              placeholder="9876543210" maxlength="10">
+          </div>
+        </div>
+
+        <!-- Email -->
+        <div class="form-group">
+          <label>Email Address</label>
+          <input type="email" class="form-control" [class.input-error]="hasError(patientForm, 'email')"
+            formControlName="email" placeholder="patient@example.com">
+        </div>
+
+        <!-- Emergency Contact Number -->
+        <div class="form-group">
+          <label>Emergency Contact Number</label>
+          <div class="input-with-icon">
+            <span class="input-icon">🆘 +91</span>
+            <input type="tel" class="form-control with-icon" [class.input-error]="hasError(patientForm, 'emergencyContactNumber')"
+              formControlName="emergencyContactNumber"
+              (keypress)="onlyDigits($event)"
+              (paste)="onPasteDigits($event, patientForm, 'emergencyContactNumber')"
+              placeholder="9876543210" maxlength="15">
+          </div>
+          @if (hasError(patientForm, 'emergencyContactNumber', 'pattern')) {
+            <span class="field-error">Enter a valid 10-digit number</span>
+          }
+        </div>
+
+        <!-- Date of Birth -->
+        <div class="form-group">
+          <label>Date of Birth <span class="req-star">*</span></label>
+          <div class="mat-date-field-wrap">
+            <input 
+              class="form-control mat-date-custom-input" [class.input-error]="hasError(patientForm, 'dob')"
+              [matDatepicker]="dobPicker" 
+              formControlName="dob"
+              placeholder="Select from calendar"
+              readonly
+              (click)="dobPicker.open()"
+              [max]="maxDate">
+            <mat-datepicker-toggle matIconSuffix [for]="dobPicker" class="mat-date-toggle-btn"></mat-datepicker-toggle>
+            <mat-datepicker #dobPicker></mat-datepicker>
+          </div>
+          @if (hasError(patientForm, 'dob', 'required')) {
+            <span class="field-error">Please select date of birth</span>
+          }
+        </div>
+
+        <!-- Gender -->
+        <div class="form-group">
+          <label>Gender <span class="req-star">*</span></label>
+          <app-custom-select 
+            [options]="genderOptions" 
+            [selectedValue]="patientForm.get('gender')?.value || ''"
+            (selectionChange)="patientForm.get('gender')?.setValue($event)"
+            formControlName="gender"
+            placeholder="Select Gender">
+          </app-custom-select>
+        </div>
+
+        <!-- Blood Group -->
+        <div class="form-group">
+          <label>Blood Group <span class="req-star">*</span></label>
+          <app-custom-select 
+            [options]="bloodGroupOptions" 
+            [selectedValue]="patientForm.get('bloodGroup')?.value || ''"
+            (selectionChange)="patientForm.get('bloodGroup')?.setValue($event)"
+            formControlName="bloodGroup"
+            placeholder="Select Blood Group">
+          </app-custom-select>
+        </div>
+
+        <!-- Pin Code -->
+        <div class="form-group">
+          <label>PIN Code <span class="req-star">*</span></label>
+          <input type="text" class="form-control" [class.input-error]="hasError(patientForm, 'pinCode')"
+            formControlName="pinCode"
+            (keypress)="onlyDigits($event)"
+            (paste)="onPasteDigits($event, patientForm, 'pinCode')"
+            placeholder="560038" maxlength="6">
+          @if (hasError(patientForm, 'pinCode', 'required')) {
+            <span class="field-error">PIN code is required</span>
+          } @else if (hasError(patientForm, 'pinCode', 'pattern')) {
+            <span class="field-error">Enter a valid 6-digit PIN code</span>
+          }
+        </div>
+
+        <!-- Address -->
+        <div class="form-group full-width">
+          <label>Residential Address <span class="req-star">*</span></label>
+          <textarea class="form-control" rows="2" [class.input-error]="hasError(patientForm, 'address')"
+            formControlName="address" placeholder="Flat / House No, Street, City, State"></textarea>
+          @if (hasError(patientForm, 'address', 'required')) {
+            <span class="field-error">Address is required</span>
+          }
+        </div>
+
+        <!-- Medical History -->
+        <div class="form-group full-width">
+          <label>Medical History / Known Allergies</label>
+          <textarea class="form-control" rows="2"
+            formControlName="medicalHistory" placeholder="e.g. Asthma, Penicillin allergy, Hypertension"></textarea>
+        </div>
+
+      </div>
+
+      <!-- Actions -->
+      <div class="auth-actions">
+        <button type="button" class="btn btn-secondary" (click)="goBack()">
+          <mat-icon class="inline-mat-icon">arrow_back</mat-icon> Back to Portal
+        </button>
+        <button type="submit" class="btn btn-primary btn-lg" [disabled]="isSubmitting()">
+          @if (isSubmitting()) {
+            <mat-icon class="inline-mat-icon spin-icon">sync</mat-icon> Updating Profile...
+          } @else {
+            Update Patient Profile <mat-icon class="inline-mat-icon">arrow_forward</mat-icon>
+          }
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

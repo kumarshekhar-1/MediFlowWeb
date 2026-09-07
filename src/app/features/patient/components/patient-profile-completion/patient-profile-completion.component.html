@@ -1,0 +1,159 @@
+<div class="content-pad">
+  <div class="medical-card" style="max-width: 620px; margin: 2rem auto; padding: 2rem;">
+    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;">
+      <div style="width: 52px; height: 52px; border-radius: 50%; background: #eff6ff; display: flex; align-items: center; justify-content: center; color: #2563eb; flex-shrink: 0;">
+        <mat-icon style="font-size: 2rem; width: 2rem; height: 2rem;">manage_accounts</mat-icon>
+      </div>
+      <div>
+        <h2 style="font-size: 1.3rem; font-weight: 800; color: #0f172a; margin: 0;">Complete Patient Profile</h2>
+        <p style="color: #64748b; font-size: 0.85rem; margin: 0.25rem 0 0;">
+          Complete your profile details to access all medical services, booking, and prescriptions.
+        </p>
+      </div>
+    </div>
+
+    @if (profileError()) {
+      <div class="api-feedback error mb-3" style="display: flex; align-items: center; gap: 8px; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); color: #ef4444; padding: 10px; border-radius: 6px; font-size: 0.88rem;">
+        <mat-icon>error</mat-icon>
+        <span>{{ profileError() }}</span>
+      </div>
+    }
+
+    <form [formGroup]="profileFormGroup" (ngSubmit)="submitProfileCompletion()" style="display: flex; flex-direction: column; gap: 1.1rem;">
+
+      <!-- Row 1: Full Name & Date of Birth -->
+      <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 0.5rem;">
+        <div class="form-group" style="flex: 1; min-width: 240px;">
+          <label class="form-label" style="font-weight: 700; font-size: 0.85rem; margin-bottom: 0.4rem;">Full Name <span style="color: #ef4444;">*</span></label>
+          <input type="text" class="form-control" [class.input-error]="isInvalid('name')" formControlName="name" placeholder="Enter Full Name">
+          @if (isInvalid('name')) {
+            <span style="color: #ef4444; font-size: 0.77rem; margin-top: 0.25rem; display: block; font-weight: 600;">
+              {{ getErrorMessage('name') }}
+            </span>
+          }
+        </div>
+
+        <div class="form-group" style="flex: 1; min-width: 240px;">
+          <label class="form-label" style="font-weight: 700; font-size: 0.85rem; margin-bottom: 0.4rem;">Date of Birth <span style="color: #ef4444;">*</span></label>
+          <div class="mat-date-field-wrap">
+            <input
+              class="form-control mat-date-custom-input"
+              [class.input-error]="isInvalid('dob')"
+              [matDatepicker]="dobPicker"
+              formControlName="dob"
+              placeholder="Select from calendar"
+              readonly
+              (click)="dobPicker.open()">
+            <mat-datepicker-toggle matIconSuffix [for]="dobPicker" class="mat-date-toggle-btn"></mat-datepicker-toggle>
+            <mat-datepicker #dobPicker></mat-datepicker>
+          </div>
+          @if (isInvalid('dob')) {
+            <span style="color: #ef4444; font-size: 0.77rem; margin-top: 0.25rem; display: block; font-weight: 600;">
+              {{ getErrorMessage('dob') }}
+            </span>
+          }
+        </div>
+      </div>
+
+      <!-- Row 2: Gender & Mobile Number -->
+      <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 0.5rem;">
+        <div class="form-group" style="flex: 1; min-width: 240px;">
+          <label class="form-label" style="font-weight: 700; font-size: 0.85rem; margin-bottom: 0.4rem;">Gender <span style="color: #ef4444;">*</span></label>
+          <app-custom-select
+            [options]="genderOptions"
+            [selectedValue]="profileFormGroup.get('gender')?.value || ''"
+            (selectionChange)="profileFormGroup.get('gender')?.setValue($event)"
+            [searchable]="false"
+            placeholder="Select Gender">
+          </app-custom-select>
+          @if (isInvalid('gender')) {
+            <span style="color: #ef4444; font-size: 0.77rem; margin-top: 0.25rem; display: block; font-weight: 600;">
+              {{ getErrorMessage('gender') }}
+            </span>
+          }
+        </div>
+
+        <div class="form-group" style="flex: 1; min-width: 240px;">
+          <label class="form-label" style="font-weight: 700; font-size: 0.85rem; margin-bottom: 0.4rem;">Mobile Number <span style="color: #ef4444;">*</span></label>
+          <input type="tel" class="form-control" [class.input-error]="isInvalid('phoneNumber')" formControlName="phoneNumber" placeholder="e.g. +91 9876543210" maxlength="15">
+          @if (isInvalid('phoneNumber')) {
+            <span style="color: #ef4444; font-size: 0.77rem; margin-top: 0.25rem; display: block; font-weight: 600;">
+              {{ getErrorMessage('phoneNumber') }}
+            </span>
+          }
+        </div>
+      </div>
+
+      <!-- Row 3: PIN Code & Email Address -->
+      <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 0.5rem;">
+        <div class="form-group" style="flex: 1; min-width: 240px;">
+          <label class="form-label" style="font-weight: 700; font-size: 0.85rem; margin-bottom: 0.4rem;">PIN Code <span style="color: #ef4444;">*</span></label>
+          <input type="text" class="form-control" [class.input-error]="isInvalid('pinCode')" formControlName="pinCode" placeholder="e.g. 560001" maxlength="6">
+          @if (isInvalid('pinCode')) {
+            <span style="color: #ef4444; font-size: 0.77rem; margin-top: 0.25rem; display: block; font-weight: 600;">
+              {{ getErrorMessage('pinCode') }}
+            </span>
+          }
+        </div>
+
+        <div class="form-group" style="flex: 1; min-width: 240px;">
+          <label class="form-label" style="font-weight: 700; font-size: 0.85rem; margin-bottom: 0.4rem;">Email Address</label>
+          <input type="email" class="form-control" [class.input-error]="isInvalid('email')" formControlName="email" placeholder="email@gmail.com">
+          @if (isInvalid('email')) {
+            <span style="color: #ef4444; font-size: 0.77rem; margin-top: 0.25rem; display: block; font-weight: 600;">
+              {{ getErrorMessage('email') }}
+            </span>
+          }
+        </div>
+      </div>
+
+      <!-- Row 4: Blood Group & Emergency Contact Number -->
+      <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 0.5rem;">
+        <div class="form-group" style="flex: 1; min-width: 240px;">
+          <label class="form-label" style="font-weight: 700; font-size: 0.85rem; margin-bottom: 0.4rem;">Blood Group</label>
+          <app-custom-select
+            [options]="bloodGroupOptions"
+            [selectedValue]="profileFormGroup.get('bloodGroup')?.value || ''"
+            (selectionChange)="profileFormGroup.get('bloodGroup')?.setValue($event)"
+            [searchable]="false"
+            placeholder="Select Blood Group">
+          </app-custom-select>
+        </div>
+
+        <div class="form-group" style="flex: 1; min-width: 240px;">
+          <label class="form-label" style="font-weight: 700; font-size: 0.85rem; margin-bottom: 0.4rem;">Emergency Contact Number</label>
+          <input type="tel" class="form-control" [class.input-error]="isInvalid('emergencyContactNumber')" formControlName="emergencyContactNumber" placeholder="e.g. +91 9876543210" maxlength="15">
+          @if (isInvalid('emergencyContactNumber')) {
+            <span style="color: #ef4444; font-size: 0.77rem; margin-top: 0.25rem; display: block; font-weight: 600;">
+              {{ getErrorMessage('emergencyContactNumber') }}
+            </span>
+          }
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" style="font-weight: 700; font-size: 0.85rem; margin-bottom: 0.4rem;">Address <span style="color: #ef4444;">*</span></label>
+        <input type="text" class="form-control" [class.input-error]="isInvalid('address')" formControlName="address" placeholder="Flat, Street, Area">
+        @if (isInvalid('address')) {
+          <span style="color: #ef4444; font-size: 0.77rem; margin-top: 0.25rem; display: block; font-weight: 600;">
+            {{ getErrorMessage('address') }}
+          </span>
+        }
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" style="font-weight: 700; font-size: 0.85rem; margin-bottom: 0.4rem;">Medical History / Allergies</label>
+        <input type="text" class="form-control" formControlName="medicalHistory" placeholder="e.g. None, Asthma, Penicillin allergy">
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-lg mt-3" style="width: 100%; height: 48px;" [disabled]="isProfileSubmitting()">
+        @if (isProfileSubmitting()) {
+          <mat-icon class="inline-mat-icon spin-icon">sync</mat-icon> Saving...
+        } @else {
+          <mat-icon class="inline-mat-icon">save</mat-icon> Save Profile &amp; Enter Portal
+        }
+      </button>
+
+    </form>
+  </div>
+</div>

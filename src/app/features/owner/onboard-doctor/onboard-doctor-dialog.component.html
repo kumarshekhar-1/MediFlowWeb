@@ -1,0 +1,218 @@
+<div class="modal-box">
+  <div class="split-header">
+    <h3>{{ isEditMode ? 'Edit Doctor' : 'Onboard New Doctor' }}</h3>
+    <button type="button" class="btn btn-secondary btn-sm" (click)="cancel()">
+      <mat-icon class="inline-mat-icon">close</mat-icon>
+    </button>
+  </div>
+
+  <form [formGroup]="doctorForm" (ngSubmit)="submit()">
+    <div class="modal-body">
+      <!-- API Error Banner -->
+      @if (registerError()) {
+        <div class="api-feedback error">
+          <mat-icon>error</mat-icon>
+          <span>{{ registerError() }}</span>
+        </div>
+      }
+
+      <div class="form-grid-2">
+        <!-- Name -->
+        <div class="form-group">
+          <label>Full Doctor Name <span class="req-star">*</span></label>
+          <input type="text" class="form-control" [class.input-error]="hasError('name')"
+            formControlName="name" placeholder="Dr. John Doe">
+          @if (hasError('name', 'required')) {
+            <span class="field-error">Name is required</span>
+          } @else if (hasError('name', 'pattern')) {
+            <span class="field-error">Name cannot have leading/trailing spaces</span>
+          }
+        </div>
+
+        <!-- Mobile Number -->
+        <div class="form-group">
+          <label>Mobile Number <span class="req-star">*</span></label>
+          <div class="input-with-icon">
+            <span class="input-icon">🇮🇳 +91</span>
+            <input type="tel" class="form-control with-icon" [class.input-error]="hasError('mobileNumber')"
+              formControlName="mobileNumber" (keypress)="onlyDigits($event)"
+              (paste)="onPasteDigits($event, 'mobileNumber')" placeholder="9876543210" maxlength="10">
+          </div>
+          @if (hasError('mobileNumber', 'required')) {
+            <span class="field-error">Mobile number is required</span>
+          } @else if (hasError('mobileNumber', 'pattern')) {
+            <span class="field-error">Enter a valid 10-digit number (starting with 6-9)</span>
+          }
+        </div>
+
+        <!-- Registration Number -->
+        <div class="form-group">
+          <label>Medical Registration # <span class="req-star">*</span></label>
+          <input type="text" class="form-control" [class.input-error]="hasError('registrationNumber')"
+            formControlName="registrationNumber" placeholder="e.g. KMC-12345">
+          @if (hasError('registrationNumber', 'required')) {
+            <span class="field-error">Registration number is required</span>
+          }
+        </div>
+
+        <!-- Specialization -->
+        <div class="form-group">
+          <label>Specialization <span class="req-star">*</span></label>
+          <input type="text" class="form-control" [class.input-error]="hasError('specialization')"
+            formControlName="specialization" placeholder="e.g. Cardiologist, Pediatrician">
+          @if (hasError('specialization', 'required')) {
+            <span class="field-error">Specialization is required</span>
+          }
+        </div>
+
+        <!-- Email -->
+        <div class="form-group">
+          <label>Email Address <span class="req-star">*</span></label>
+          <input type="email" class="form-control" [class.input-error]="hasError('email')"
+            formControlName="email" placeholder="doctor@mediflow.com">
+          @if (hasError('email', 'required')) {
+            <span class="field-error">Email is required</span>
+          } @else if (hasError('email', 'pattern')) {
+            <span class="field-error">Enter a valid email address</span>
+          }
+        </div>
+
+        <!-- Qualification -->
+        <div class="form-group">
+          <label>Qualification</label>
+          <input type="text" class="form-control" formControlName="qualification" placeholder="e.g. MBBS, MD">
+        </div>
+
+        <!-- Average Consultation Time -->
+        <div class="form-group">
+          <label>Avg Consultation Time (min) <span class="req-star">*</span></label>
+          <input type="number" class="form-control" [class.input-error]="hasError('avgConsultationTimeMinutes')"
+            formControlName="avgConsultationTimeMinutes" placeholder="15">
+          @if (hasError('avgConsultationTimeMinutes', 'required')) {
+            <span class="field-error">Consultation time is required</span>
+          } @else if (hasError('avgConsultationTimeMinutes', 'min')) {
+            <span class="field-error">Must be at least 1 minute</span>
+          }
+        </div>
+
+        <!-- Consultation Fee -->
+        <div class="form-group">
+          <label>Consultation Fee (₹) <span class="req-star">*</span></label>
+          <input type="number" class="form-control" [class.input-error]="hasError('consultationFee')"
+            formControlName="consultationFee" placeholder="500">
+          @if (hasError('consultationFee', 'required')) {
+            <span class="field-error">Consultation fee is required</span>
+          } @else if (hasError('consultationFee', 'min')) {
+            <span class="field-error">Fee cannot be negative</span>
+          }
+        </div>
+
+        <!-- Receptionist Assignment -->
+        <div class="form-group">
+          <label>Assign Receptionist <span class="optional-tag">(Optional)</span></label>
+          <mat-form-field appearance="outline" class="standard-mat-select-field full-width" subscriptSizing="dynamic">
+            <mat-select formControlName="receptionistId" placeholder="Select Receptionist">
+              <mat-option [value]="''">— None —</mat-option>
+              @if (receptionistList().length === 0) {
+                <mat-option disabled>No receptionists onboarded yet</mat-option>
+              }
+              @for (rec of receptionistList(); track rec.receptionistId) {
+                <mat-option [value]="rec.receptionistId">
+                  {{ rec.name }} — {{ rec.mobileNumber }}
+                </mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <!-- Schedules Section -->
+        <div class="schedules-section full-width">
+          <div class="schedule-header-row">
+            <h4 class="form-section-title mb-0">Doctor Work Schedules <span class="req-star">*</span></h4>
+            <button type="button" class="btn btn-secondary btn-sm" (click)="addSchedule()">
+              <mat-icon class="inline-mat-icon">add</mat-icon> Add Day Schedule
+            </button>
+          </div>
+
+          <div formArrayName="schedules" class="schedule-list">
+             @for (sch of schedulesFormArray.controls; track $index; let i = $index) {
+               <div [formGroupName]="i" class="schedule-item-wrapper">
+                 <div class="schedule-row">
+                   <mat-form-field appearance="outline" class="standard-mat-select-field" subscriptSizing="dynamic">
+                     <mat-select formControlName="dayOfWeek" placeholder="Select Day">
+                       <mat-select-trigger>
+                         <div class="selected-trigger-layout">
+                           <span>{{ getSelectedDayLabel(sch.get('dayOfWeek')?.value) }}</span>
+                           <span class="opt-badge">{{ getSelectedDayBadge(sch.get('dayOfWeek')?.value) }}</span>
+                         </div>
+                       </mat-select-trigger>
+                       @for (day of daysOfWeekList; track day.value) {
+                         <mat-option [value]="day.value">
+                           <div class="option-container-layout">
+                             <span>{{ day.label }}</span>
+                             <span class="opt-badge">{{ day.badge }}</span>
+                           </div>
+                         </mat-option>
+                       }
+                     </mat-select>
+                   </mat-form-field>
+
+                   <mat-form-field appearance="outline" class="standard-mat-select-field" subscriptSizing="dynamic">
+                     <mat-select formControlName="startTime" placeholder="Start Time">
+                       <mat-select-trigger>
+                         {{ getSelectedTimeLabel(sch.get('startTime')?.value) }}
+                       </mat-select-trigger>
+                       @for (slot of timeSlotsList; track slot.value) {
+                         <mat-option [value]="slot.value">
+                           {{ slot.label }}
+                         </mat-option>
+                       }
+                     </mat-select>
+                   </mat-form-field>
+
+                   <mat-form-field appearance="outline" class="standard-mat-select-field" subscriptSizing="dynamic">
+                     <mat-select formControlName="endTime" placeholder="End Time">
+                       <mat-select-trigger>
+                         {{ getSelectedTimeLabel(sch.get('endTime')?.value) }}
+                       </mat-select-trigger>
+                       @for (slot of timeSlotsList; track slot.value) {
+                         <mat-option [value]="slot.value">
+                           {{ slot.label }}
+                         </mat-option>
+                       }
+                     </mat-select>
+                   </mat-form-field>
+
+                   <button type="button" class="btn btn-danger btn-sm" (click)="removeSchedule(i)" [disabled]="schedulesFormArray.length <= 1">
+                     <mat-icon class="inline-mat-icon">delete</mat-icon>
+                   </button>
+                 </div>
+                 @if (sch.touched && sch.hasError('invalidTimeRange')) {
+                   <span class="field-error schedule-error">End time must be after start time</span>
+                 }
+               </div>
+             }
+             @if (doctorForm.get('schedules')?.hasError('overlapDetected')) {
+               <div class="field-error schedule-error overlap-error mt-2">
+                 Overlapping work schedules detected for the same day.
+               </div>
+             }
+           </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-actions mt-4">
+      <button type="button" class="btn btn-secondary" (click)="cancel()">Cancel</button>
+      <button type="submit" class="btn btn-primary" [disabled]="registerSubmitting()">
+        @if (registerSubmitting()) {
+          <mat-icon class="inline-mat-icon spin-icon">sync</mat-icon> Processing...
+        } @else if (isEditMode) {
+          <mat-icon class="inline-mat-icon">save</mat-icon> Update Doctor
+        } @else {
+          <mat-icon class="inline-mat-icon">check</mat-icon> Onboard Doctor
+        }
+      </button>
+    </div>
+  </form>
+</div>

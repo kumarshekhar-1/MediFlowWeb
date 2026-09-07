@@ -1,0 +1,469 @@
+<div class="content-pad">
+  <!-- Top Action Bar -->
+  <div class="workspace-header">
+    <div class="header-titles">
+      <h1 class="page-title">Reception Desk & Live Queue Board</h1>
+      <p class="page-subtitle">Patient check-in, token management, appointment booking and point-of-sale invoicing.</p>
+    </div>
+    <div class="header-actions">
+      <button type="button" class="btn btn-primary" (click)="showRegisterModal.set(true)">
+        <mat-icon class="inline-mat-icon">person_add</mat-icon> Quick Patient Register
+      </button>
+      <button type="button" class="btn btn-teal" (click)="showBookModal.set(true)">
+        <mat-icon class="inline-mat-icon">calendar_month</mat-icon> Book Appointment
+      </button>
+    </div>
+  </div>
+
+  <!-- Quick Metrics Ribbon -->
+  <div class="desk-stats-grid">
+    <div class="stat-box">
+      <span class="s-label">Total Today</span>
+      <span class="s-num text-primary">{{ todayAppointments().length }}</span>
+    </div>
+    <div class="stat-box">
+      <span class="s-label">Checked In / Waiting</span>
+      <span class="s-num text-amber">{{ waitingList().length }}</span>
+    </div>
+    <div class="stat-box">
+      <span class="s-label">In Consultation</span>
+      <span class="s-num text-purple">{{ inConsultList().length }}</span>
+    </div>
+    <div class="stat-box">
+      <span class="s-label">Pending Billing</span>
+      <span class="s-num text-orange">{{ pendingBillingList().length }}</span>
+    </div>
+    <div class="stat-box">
+      <span class="s-label">Completed & Paid</span>
+      <span class="s-num text-emerald">{{ completedList().length }}</span>
+    </div>
+  </div>
+
+  <!-- Main Live Queue Card -->
+  <div class="medical-card mt-6">
+    <div class="split-header">
+      <div class="filter-row">
+        <h2 class="section-title mb-0">Live Patient Queue Board</h2>
+        <!-- Standard Material Dropdown for Doctor Filter -->
+        <mat-form-field appearance="outline" class="standard-mat-select-field doc-filter-mat-field" subscriptSizing="dynamic">
+          <mat-select [(ngModel)]="filterDoctorId" (selectionChange)="onDoctorFilterChange($event.value)">
+            <mat-option value="ALL">All Doctors ({{ doctorsList().length }})</mat-option>
+            @for (doc of doctorsList(); track doc.doctorId || doc.id) {
+              <mat-option [value]="doc.doctorId || doc.id">{{ doc.name }} ({{ doc.specialization }})</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <div class="search-wrap">
+        <div class="search-input-box">
+          <mat-icon class="search-prefix-icon">search</mat-icon>
+          <input type="text" [(ngModel)]="searchQuery" placeholder="Search patient name or phone..." class="search-input">
+        </div>
+      </div>
+    </div>
+
+    <!-- Desktop Data Table View -->
+    <div class="desktop-table-view table-responsive">
+      <table class="data-table queue-table">
+        <thead>
+          <tr>
+            <th>Token</th>
+            <th>Patient Details</th>
+            <th>Assigned Doctor</th>
+            <th>Slot Time</th>
+            <th>Current Status</th>
+            <th>Desk Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (apt of filteredAppointments(); track apt.id) {
+            <tr [class.highlight-row]="apt.status === 'IN_CONSULTATION'">
+              <td>
+                <span class="token-tag">{{ apt.tokenNumber }}</span>
+              </td>
+              <td>
+                <div class="pat-info-cell">
+                  <strong>{{ apt.patientName }}</strong>
+                  <span class="sub-text">{{ apt.patientPhone }} • {{ apt.patientGender || 'M' }}, {{ apt.patientAge || '30' }}y</span>
+                  @if (apt.reason) {
+                    <span class="reason-sub">{{ apt.reason }}</span>
+                  }
+                </div>
+              </td>
+              <td>
+                <div class="doc-info-cell">
+                  <strong>{{ apt.doctorName }}</strong>
+                  <span class="sub-text">{{ apt.doctorSpecialization }}</span>
+                </div>
+              </td>
+              <td>
+                <span class="slot-badge">{{ apt.timeSlot }}</span>
+              </td>
+              <td>
+                <span class="badge badge-{{ apt.status.toLowerCase().replace('_', '-') }}">
+                  {{ apt.status.replace('_', ' ') }}
+                </span>
+              </td>
+              <td>
+                <div class="action-buttons-cell">
+                  <!-- Check-in Action -->
+                  @if (apt.status === 'BOOKED' || apt.status === 'CONFIRMED') {
+                    <button 
+                      type="button" 
+                      class="btn btn-primary btn-sm"
+                      (click)="checkInPatient(apt)">
+                      <mat-icon class="inline-mat-icon">check</mat-icon> Check-In
+                    </button>
+                  }
+
+                  <!-- Send to Doctor Queue -->
+                  @if (apt.status === 'CHECKED_IN') {
+                    <button 
+                      type="button" 
+                      class="btn btn-secondary btn-sm"
+                      (click)="moveToWaiting(apt)">
+                      <mat-icon class="inline-mat-icon">arrow_forward</mat-icon> Move to Waiting
+                    </button>
+                  }
+
+                  <!-- Generate Bill Action -->
+                  @if (apt.status === 'CONSULTATION_COMPLETED') {
+                    <button 
+                      type="button" 
+                      class="btn btn-emerald btn-sm"
+                      (click)="openBillingModal(apt)">
+                      <mat-icon class="inline-mat-icon">point_of_sale</mat-icon> Create Bill
+                    </button>
+                  }
+
+                  <!-- View Receipt if already billed -->
+                  @if (['BILL_GENERATED', 'PAID', 'COMPLETED'].includes(apt.status)) {
+                    <button 
+                      type="button" 
+                      class="btn btn-outline btn-sm"
+                      (click)="openInvoiceView(apt)">
+                      <mat-icon class="inline-mat-icon">receipt_long</mat-icon> View Invoice
+                    </button>
+                  }
+
+                  <!-- Cancel Button -->
+                  @if (apt.status === 'BOOKED' || apt.status === 'CONFIRMED') {
+                    <button 
+                      type="button" 
+                      class="btn btn-danger btn-sm"
+                      (click)="cancelAppointment(apt)">
+                      <mat-icon class="inline-mat-icon">close</mat-icon> Cancel
+                    </button>
+                  }
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Mobile-First Responsive Queue Card List View -->
+    <div class="mobile-queue-cards-list">
+      @for (apt of filteredAppointments(); track apt.id) {
+        <div class="mobile-queue-card" [class.highlight-card]="apt.status === 'IN_CONSULTATION'">
+          <!-- Top Row: Token & Status -->
+          <div class="m-card-header">
+            <div class="m-token-pill">
+              <span class="m-tok-lbl">TOKEN</span>
+              <strong class="m-tok-val">{{ apt.tokenNumber }}</strong>
+            </div>
+            <div class="m-header-right">
+              <span class="slot-badge"><mat-icon class="inline-mat-icon">schedule</mat-icon> {{ apt.timeSlot }}</span>
+              <span class="badge badge-{{ apt.status.toLowerCase().replace('_', '-') }}">
+                {{ apt.status.replace('_', ' ') }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Middle: Patient & Doctor Info with Clean Line Breaks -->
+          <div class="m-card-body">
+            <div class="m-patient-row">
+              <strong class="m-pat-name">{{ apt.patientName }}</strong>
+              <span class="m-pat-phone">{{ apt.patientPhone }} • {{ apt.patientGender || 'M' }}, {{ apt.patientAge || '30' }}y</span>
+              @if (apt.reason) {
+                <span class="reason-sub">Reason: {{ apt.reason }}</span>
+              }
+            </div>
+
+            <div class="m-doc-row">
+              <span class="m-doc-lbl">Assigned Doctor:</span>
+              <strong class="m-doc-name">{{ apt.doctorName }}</strong>
+              <span class="m-doc-spec">{{ apt.doctorSpecialization }}</span>
+            </div>
+          </div>
+
+          <!-- Bottom: Action Buttons -->
+          <div class="m-card-actions">
+            @if (apt.status === 'BOOKED' || apt.status === 'CONFIRMED') {
+              <button type="button" class="btn btn-primary btn-sm btn-block" (click)="checkInPatient(apt)">
+                <mat-icon class="inline-mat-icon">check</mat-icon> Check-In Patient
+              </button>
+              <button type="button" class="btn btn-danger btn-sm" (click)="cancelAppointment(apt)">
+                <mat-icon class="inline-mat-icon">close</mat-icon>
+              </button>
+            }
+            @if (apt.status === 'CHECKED_IN') {
+              <button type="button" class="btn btn-secondary btn-sm btn-block" (click)="moveToWaiting(apt)">
+                <mat-icon class="inline-mat-icon">arrow_forward</mat-icon> Send to Waiting Room
+              </button>
+            }
+            @if (apt.status === 'CONSULTATION_COMPLETED') {
+              <button type="button" class="btn btn-emerald btn-sm btn-block" (click)="openBillingModal(apt)">
+                <mat-icon class="inline-mat-icon">point_of_sale</mat-icon> Collect Bill & Print
+              </button>
+            }
+            @if (['BILL_GENERATED', 'PAID', 'COMPLETED'].includes(apt.status)) {
+              <button type="button" class="btn btn-outline btn-sm btn-block" (click)="openInvoiceView(apt)">
+                <mat-icon class="inline-mat-icon">receipt_long</mat-icon> View Receipt
+              </button>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- MODAL: Quick Patient Registration Standalone Dialog Component -->
+  <app-quick-patient-registration 
+    [isOpen]="showRegisterModal()" 
+    (close)="showRegisterModal.set(false)" 
+    (registered)="onPatientRegistered()">
+  </app-quick-patient-registration>
+
+  <!-- MODAL: Book Appointment for Existing Patient -->
+  @if (showBookModal()) {
+    <div class="modal-overlay">
+      <div class="modal-box">
+        <div class="split-header">
+          <h3>Schedule Patient Appointment</h3>
+          <button type="button" class="btn btn-secondary btn-sm" (click)="showBookModal.set(false)">
+            <mat-icon class="inline-mat-icon">close</mat-icon>
+          </button>
+        </div>
+
+        <form (ngSubmit)="submitBookAppointment()">
+          <div class="modal-body">
+            <div class="form-grid-2">
+            <div class="form-group full-width">
+              <label>Select Patient *</label>
+              <mat-form-field appearance="outline" class="standard-mat-select-field full-width" subscriptSizing="dynamic">
+                <mat-select [(ngModel)]="bookingForm.patientId" name="bPatient" placeholder="Choose registered patient">
+                  @for (p of db.patients(); track p.id) {
+                    <mat-option [value]="p.id">{{ p.name }} ({{ p.phone }})</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+            </div>
+            <div class="form-group full-width">
+              <label>Select Doctor *</label>
+              <mat-form-field appearance="outline" class="standard-mat-select-field full-width" subscriptSizing="dynamic">
+                <mat-select [(ngModel)]="bookingForm.doctorId" name="bDoc" (selectionChange)="onBookingDoctorChange($event.value)" placeholder="Choose consulting doctor">
+                  @for (doc of doctorsList(); track doc.doctorId || doc.id) {
+                    <mat-option [value]="doc.doctorId || doc.id">{{ doc.name }} • {{ doc.specialization }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+            </div>
+            <div class="form-group full-width">
+              <app-calendar-picker 
+                [selectedDate]="bookingForm.date" 
+                (dateChange)="onBookingDateChange($event)">
+              </app-calendar-picker>
+            </div>
+            <div class="form-group full-width">
+              <label>Time Slot *</label>
+              <div class="slots-container">
+                @for (slot of availableTimeSlots; track slot) {
+                  <span 
+                    class="chip slot-chip"
+                    [class.active]="bookingForm.timeSlot === slot"
+                    (click)="bookingForm.timeSlot = slot">
+                    <mat-icon class="inline-mat-icon">schedule</mat-icon> {{ slot }}
+                  </span>
+                }
+              </div>
+            </div>
+          </div>
+          </div>
+
+          <div class="modal-actions mt-4">
+            <button type="button" class="btn btn-secondary" (click)="showBookModal.set(false)">Cancel</button>
+            <button type="submit" class="btn btn-primary">
+              <mat-icon class="inline-mat-icon">check_circle</mat-icon> Confirm Appointment
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- MODAL: POS Billing & Payment Collection -->
+  @if (showBillingModal() && activeBillingApt) {
+    <div class="modal-overlay">
+      <div class="modal-box">
+        <div class="split-header">
+          <h3>Billing & Payment Collection</h3>
+          <button type="button" class="btn btn-secondary btn-sm" (click)="showBillingModal.set(false)">
+            <mat-icon class="inline-mat-icon">close</mat-icon>
+          </button>
+        </div>
+
+        <div class="modal-body">
+          <div class="billing-patient-summary">
+          <div><strong>Patient:</strong> {{ activeBillingApt.patientName }} ({{ activeBillingApt.patientPhone }})</div>
+          <div><strong>Doctor:</strong> {{ activeBillingApt.doctorName }} ({{ activeBillingApt.doctorSpecialization }})</div>
+        </div>
+
+        <!-- Line items table -->
+        <table class="data-table mt-4">
+          <thead>
+            <tr>
+              <th>Service Item</th>
+              <th>Qty</th>
+              <th>Price (₹)</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (it of billItems; track $index; let idx = $index) {
+              <tr>
+                <td>{{ it.description }}</td>
+                <td>{{ it.quantity }}</td>
+                <td>₹{{ it.unitPrice }}</td>
+                <td>
+                  <button type="button" class="delete-btn" (click)="removeBillItem(idx)">
+                    <mat-icon class="inline-mat-icon">delete</mat-icon>
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+
+        <!-- Add extra service -->
+        <div class="add-service-row mt-3">
+          <mat-form-field appearance="outline" class="standard-mat-select-field" style="max-width: 340px;" subscriptSizing="dynamic">
+            <mat-select [(ngModel)]="selectedServiceId" placeholder="-- Add Diagnostic / Procedure Item --">
+              @for (srv of db.clinicServices(); track srv.id) {
+                <mat-option [value]="srv.id">{{ srv.name }} (+₹{{ srv.price }})</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+          <button type="button" class="btn btn-secondary btn-sm" (click)="addServiceToBill()">
+            <mat-icon class="inline-mat-icon">add</mat-icon> Add to Bill
+          </button>
+        </div>
+
+        <!-- Total Breakdown -->
+        <div class="bill-total-summary mt-4">
+          <div class="total-line">
+            <span>Subtotal:</span>
+            <strong>₹{{ billSubtotal }}</strong>
+          </div>
+          <div class="total-line final">
+            <span>Total Payable:</span>
+            <span class="final-amt">₹{{ billFinalTotal }}</span>
+          </div>
+        </div>
+
+        <!-- Payment Method -->
+        <div class="payment-method-selector mt-4">
+          <label>Select Payment Mode:</label>
+          <div class="payment-chips">
+            <span class="chip" [class.active]="selectedPaymentMethod === 'CASH'" (click)="selectedPaymentMethod = 'CASH'">
+              <mat-icon class="inline-mat-icon">payments</mat-icon> Cash
+            </span>
+            <span class="chip" [class.active]="selectedPaymentMethod === 'UPI'" (click)="selectedPaymentMethod = 'UPI'">
+              <mat-icon class="inline-mat-icon">qr_code</mat-icon> UPI / QR
+            </span>
+            <span class="chip" [class.active]="selectedPaymentMethod === 'CARD'" (click)="selectedPaymentMethod = 'CARD'">
+              <mat-icon class="inline-mat-icon">credit_card</mat-icon> Debit/Credit Card
+            </span>
+          </div>
+        </div>
+        </div>
+
+        <div class="modal-actions mt-4">
+          <button type="button" class="btn btn-secondary" (click)="showBillingModal.set(false)">Cancel</button>
+          <button type="button" class="btn btn-emerald btn-lg" (click)="submitCollectPayment()">
+            <mat-icon class="inline-mat-icon">receipt</mat-icon> Record ₹{{ billFinalTotal }} & Issue Receipt
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- MODAL: Printable Receipt Modal -->
+  @if (showReceiptModal() && activeInvoice()) {
+    <div class="modal-overlay">
+      <div class="modal-box printable-document">
+        <div class="split-header no-print">
+          <h3>Payment Receipt</h3>
+          <div class="header-actions">
+            <button type="button" class="btn btn-primary btn-sm" (click)="downloadInvoicePdf()">
+              <mat-icon class="inline-mat-icon">download</mat-icon> Download PDF
+            </button>
+            <button type="button" class="btn btn-secondary btn-sm" (click)="printInvoicePdf()">
+              <mat-icon class="inline-mat-icon">print</mat-icon> Print PDF
+            </button>
+            <button type="button" class="btn btn-secondary btn-sm" (click)="showReceiptModal.set(false)">
+              <mat-icon class="inline-mat-icon">close</mat-icon> Close
+            </button>
+          </div>
+        </div>
+
+        <div class="invoice-container">
+          <div class="invoice-clinic-header">
+            <h2>{{ db.currentClinic().name }}</h2>
+            <p>{{ db.currentClinic().address }}, {{ db.currentClinic().city }}</p>
+            <p>Tel: {{ db.currentClinic().contact }} | Reg: {{ db.currentClinic().regNumber }}</p>
+          </div>
+
+          <div class="receipt-ribbon">OFFICIAL TAX RECEIPT</div>
+
+          <div class="invoice-meta-grid">
+            <div><strong>Receipt No:</strong> {{ activeInvoice()!.invoiceNumber }}</div>
+            <div><strong>Date:</strong> {{ activeInvoice()!.createdAt | date:'medium' }}</div>
+            <div><strong>Patient Name:</strong> {{ activeInvoice()!.patientName }}</div>
+            <div><strong>Status:</strong> <span class="badge badge-paid">{{ activeInvoice()!.status }}</span></div>
+          </div>
+
+          <table class="data-table mt-4">
+            <thead>
+              <tr>
+                <th>Item Description</th>
+                <th>Qty</th>
+                <th>Amount (₹)</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (item of activeInvoice()!.items; track item.serviceId) {
+                <tr>
+                  <td>{{ item.description }}</td>
+                  <td>{{ item.quantity }}</td>
+                  <td>₹{{ item.amount }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+
+          <div class="receipt-total-block">
+            <div class="total-row grand">
+              <span>Total Received:</span>
+              <span>₹{{ activeInvoice()!.total }}</span>
+            </div>
+            <div class="paid-stamp">PAID IN FULL</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  }
+</div>

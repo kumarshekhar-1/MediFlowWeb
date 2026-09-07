@@ -1,0 +1,163 @@
+<div class="medical-card">
+  <div class="split-header">
+    <h2 class="section-title mb-0">Doctors Roster &amp; Department Performance</h2>
+    <button type="button" class="btn btn-primary btn-sm" (click)="openAddDoctorDialog()">
+      <mat-icon class="inline-mat-icon">add</mat-icon> Onboard Doctor
+    </button>
+  </div>
+  <div class="table-responsive">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th style="white-space: nowrap;">Doctor Name</th>
+          <th style="white-space: nowrap;">Mobile</th>
+          <th style="white-space: nowrap;">Email</th>
+          <th style="white-space: nowrap;">Specialization &amp; Reg No</th>
+          <th style="white-space: nowrap;">Schedule</th>
+          <th style="white-space: nowrap;">Avg Time</th>
+          <th style="white-space: nowrap;">Fee</th>
+          <th style="white-space: nowrap;">Receptionist</th>
+          <th style="white-space: nowrap;">Status</th>
+          <th style="white-space: nowrap;">Patients</th>
+          <th style="white-space: nowrap;">Revenue</th>
+          <th style="white-space: nowrap;">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        @if (doctorListLoading) {
+          <tr><td colspan="12" class="text-center py-4">Loading doctors...</td></tr>
+        } @else if (doctorList.length === 0) {
+          <tr><td colspan="12" class="text-center py-4 sub-text">No doctors onboarded yet.</td></tr>
+        } @else {
+          @for (doc of doctorList; track doc.doctorId) {
+            <tr>
+              <td style="white-space: nowrap;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                  <div class="doc-avatar" style="width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #6366f1, #8b5cf6); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; flex-shrink: 0;">{{ getDoctorInitial(doc.name) }}</div>
+                  <div style="display: flex; flex-direction: column; gap: 2px;">
+                    <strong style="display: block;">{{ doc.name }}</strong>
+                    <span class="sub-text" style="display: block; font-size: 0.78rem;">{{ doc.qualification || 'MBBS' }}</span>
+                  </div>
+                </div>
+              </td>
+              <td>{{ doc.mobileNumber }}</td>
+              <td>{{ doc.email }}</td>
+              <td>
+                <div><strong>{{ doc.specialization }}</strong></div>
+                <span class="sub-text">{{ doc.registrationNumber }}</span>
+              </td>
+              <td style="white-space: nowrap;">
+                @if ((doc.schedules || doc.schedule) && (doc.schedules || doc.schedule).length > 0) {
+                  <div style="display: flex; flex-direction: column; gap: 4px;">
+                    @for (sch of (doc.schedules || doc.schedule); track $index) {
+                      <div style="display: flex; align-items: center; gap: 6px;">
+                        <span class="schedule-badge" style="white-space: nowrap;">{{ formatTime(sch.startTime) }} – {{ formatTime(sch.endTime) }}</span>
+                        <span class="sub-text" style="white-space: nowrap;">{{ formatDay(sch.dayOfWeek) }}</span>
+                      </div>
+                    }
+                  </div>
+                } @else {
+                  <span class="sub-text">—</span>
+                }
+              </td>
+              <td style="white-space: nowrap;">{{ doc.avgConsultationTimeMinutes }} min</td>
+              <td><strong>₹{{ doc.consultationFee }}</strong></td>
+              <td>
+                @if (doc.receptionistId) {
+                  <span class="badge badge-confirmed">{{ doc.receptionistId }}</span>
+                } @else {
+                  <span class="sub-text">Not Assigned</span>
+                }
+              </td>
+              <td>
+                <span class="badge" [class.badge-confirmed]="doc.status === 'ACTIVE'" [class.badge-cancelled]="doc.status !== 'ACTIVE'">
+                  {{ doc.status }}
+                </span>
+              </td>
+              <td>
+                <span class="badge badge-booked">
+                  {{ getDoctorConsultationsCount(doc.doctorId) }} Visits
+                </span>
+              </td>
+              <td>
+                <strong class="revenue-text">
+                  ₹{{ getDoctorRevenue(doc.doctorId, doc.consultationFee) | number }}
+                </strong>
+              </td>
+              <td>
+                <div class="d-flex gap-2">
+                  <button type="button" class="btn btn-secondary btn-sm" (click)="openEditDoctorDialog(doc)" style="white-space: nowrap;">
+                    <mat-icon class="inline-mat-icon">edit</mat-icon> Edit
+                  </button>
+                  <button type="button" class="btn btn-outline btn-sm" (click)="openAssignReceptionistModal(doc)" style="white-space: nowrap;">
+                    <mat-icon class="inline-mat-icon">person_pin</mat-icon> Assign Desk
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- MODAL: Assign Receptionist to Doctor -->
+@if (showAssignReceptionistModal) {
+  <div class="modal-overlay">
+    <div class="modal-box">
+      <div class="split-header">
+        <h3 class="section-title">Assign Receptionist / Front Desk</h3>
+        <button type="button" class="btn btn-secondary btn-sm" (click)="showAssignReceptionistModal = false">
+          <mat-icon class="inline-mat-icon">close</mat-icon>
+        </button>
+      </div>
+
+      @if (selectedDoctorForAssignment) {
+        <form (ngSubmit)="submitAssignReceptionist()" style="display: flex; flex-direction: column; height: 100%;">
+          <div class="modal-body" style="padding: 1.5rem;">
+            <div class="p-3 mb-3 bg-light rounded border" style="background: rgba(239, 246, 255, 0.4) !important; border: 1px solid rgba(191, 219, 254, 0.6) !important; border-radius: 8px;">
+              <strong class="d-block text-primary" style="font-size: 0.95rem; font-weight: 750; display: block; margin-bottom: 0.15rem;">Dr. {{ selectedDoctorForAssignment.name }}</strong>
+              <span class="sub-text" style="font-size: 0.8rem; color: #64748b;">{{ selectedDoctorForAssignment.specialization }} • ID: {{ selectedDoctorForAssignment.doctorId || selectedDoctorForAssignment.id }}</span>
+            </div>
+
+            <div class="form-group mb-0">
+              <label style="font-weight: 700; font-size: 0.85rem; margin-bottom: 0.4rem; display: block; color: #1e293b;">Select Clinic Receptionist</label>
+              <mat-form-field appearance="outline" class="standard-mat-select-field full-width" subscriptSizing="dynamic">
+                <mat-select [(ngModel)]="assignedReceptionistId" name="receptionistSelection" required placeholder="Choose a receptionist">
+                  @for (rec of receptionistList; track rec.receptionistId) {
+                    <mat-option [value]="rec.receptionistId">
+                      {{ rec.name }} ({{ rec.receptionistId }})
+                    </mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+            </div>
+
+            @if (assignSuccessMsg) {
+              <div class="alert alert-success mt-3 p-2 small" style="border-radius: 6px; font-size: 0.82rem; background: rgba(5, 150, 105, 0.1); border: 1px solid rgba(5, 150, 105, 0.2); color: #059669; padding: 8px 12px; margin-top: 1rem;">
+                {{ assignSuccessMsg }}
+              </div>
+            }
+
+            @if (assignErrorMsg) {
+              <div class="alert alert-danger mt-3 p-2 small" style="border-radius: 6px; font-size: 0.82rem; background: rgba(220, 38, 38, 0.1); border: 1px solid rgba(220, 38, 38, 0.2); color: #dc2626; padding: 8px 12px; margin-top: 1rem;">
+                {{ assignErrorMsg }}
+              </div>
+            }
+          </div>
+
+          <div class="modal-actions" style="margin-top: 0; padding: 1rem 1.5rem; background: #f8fafc; border-top: 1px solid #e2e8f0; display: flex; justify-content: flex-end; gap: 0.75rem;">
+            <button type="button" class="btn btn-secondary btn-sm" (click)="showAssignReceptionistModal = false" [disabled]="isAssigningReceptionist">
+              Cancel
+            </button>
+            <button type="submit" class="btn btn-primary btn-sm" [disabled]="isAssigningReceptionist || !assignedReceptionistId">
+              <mat-icon class="inline-mat-icon">save</mat-icon>
+              {{ isAssigningReceptionist ? 'Assigning...' : 'Confirm Assignment' }}
+            </button>
+          </div>
+        </form>
+      }
+    </div>
+  </div>
+}

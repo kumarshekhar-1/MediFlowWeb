@@ -1,0 +1,116 @@
+<div class="content-pad">
+  <div class="medical-card" style="max-width: 800px; margin: 2rem auto; padding: 2.5rem;">
+    <!-- Api feedback messages -->
+    @if (apiSuccess()) {
+      <div class="api-feedback success mb-4" style="display: flex; align-items: center; gap: 8px; background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.2); color: #22c55e; padding: 12px; border-radius: 6px; font-size: 0.9rem;">
+        <mat-icon>check_circle</mat-icon>
+        <span>{{ apiSuccess() }}</span>
+      </div>
+    }
+    @if (apiError()) {
+      <div class="api-feedback error mb-4" style="display: flex; align-items: center; gap: 8px; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); color: #ef4444; padding: 12px; border-radius: 6px; font-size: 0.9rem;">
+        <mat-icon>error</mat-icon>
+        <span>{{ apiError() }}</span>
+      </div>
+    }
+
+    <div class="auth-header">
+      <div class="auth-logo">
+        <mat-icon style="font-size: 3rem; width: 3rem; height: 3rem;">medical_services</mat-icon>
+      </div>
+      <h2 class="auth-title">Doctor Professional Profile</h2>
+      <p class="auth-desc">
+        Manage practitioner credentials, specialization, and consultation parameters (ID: <strong>{{ doctorSession.doctor()?.doctorId || doctorSession.currentDoctorId() }}</strong>).
+      </p>
+    </div>
+
+    <form [formGroup]="doctorForm" (ngSubmit)="submitDoctor()">
+      <div class="form-section-title">Practitioner Credentials</div>
+      <div class="form-grid-2">
+
+        <div class="form-group">
+          <label>Doctor Full Name <span class="req-star">*</span></label>
+          <input type="text" class="form-control" [class.input-error]="hasError(doctorForm, 'name')"
+            formControlName="name" placeholder="Dr. Sarah Khan">
+          @if (hasError(doctorForm, 'name', 'required')) {
+            <span class="field-error">Name is required</span>
+          }
+        </div>
+
+        <div class="form-group">
+          <label>Specialization <span class="req-star">*</span></label>
+          <input type="text" class="form-control" [class.input-error]="hasError(doctorForm, 'specialization')"
+            formControlName="specialization" placeholder="e.g. Cardiologist">
+          @if (hasError(doctorForm, 'specialization', 'required')) {
+            <span class="field-error">Specialization is required</span>
+          }
+        </div>
+
+        <div class="form-group">
+          <label>Qualification <span class="req-star">*</span></label>
+          <input type="text" class="form-control" [class.input-error]="hasError(doctorForm, 'qualification')"
+            formControlName="qualification" placeholder="MBBS, MD">
+          @if (hasError(doctorForm, 'qualification', 'required')) {
+            <span class="field-error">Qualification is required</span>
+          }
+        </div>
+
+        <div class="form-group">
+          <label>Medical Council Registration No (Read Only)</label>
+          <input type="text" class="form-control disabled-input" formControlName="registrationNumber">
+        </div>
+
+        <div class="form-group">
+          <label>Contact Mobile Number <span class="req-star">*</span></label>
+          <div class="input-with-icon">
+            <span class="input-icon">🇮🇳 +91</span>
+            <input type="tel" class="form-control with-icon" [class.input-error]="hasError(doctorForm, 'mobileNumber')"
+              formControlName="mobileNumber"
+              (keypress)="onlyDigits($event)"
+              (paste)="onPasteDigits($event, doctorForm, 'mobileNumber')"
+              placeholder="9876543210" maxlength="10">
+          </div>
+          @if (hasError(doctorForm, 'mobileNumber', 'required')) {
+            <span class="field-error">Mobile number is required</span>
+          }
+        </div>
+
+        <div class="form-group">
+          <label>Official Email <span class="req-star">*</span></label>
+          <input type="email" class="form-control" [class.input-error]="hasError(doctorForm, 'email')"
+            formControlName="email" placeholder="doctor@clinic.com">
+          @if (hasError(doctorForm, 'email', 'required')) {
+            <span class="field-error">Email is required</span>
+          }
+        </div>
+
+        <div class="form-group">
+          <label>Consultation Fee (₹) <span class="req-star">*</span></label>
+          <input type="number" class="form-control" formControlName="consultationFee" placeholder="500">
+        </div>
+
+        <div class="form-group">
+          <label>Avg Consultation Time (Minutes) <span class="req-star">*</span></label>
+          <input type="number" class="form-control" formControlName="avgConsultationTimeMinutes" placeholder="15">
+        </div>
+
+      </div>
+
+      <!-- Actions -->
+      <div class="auth-actions">
+        @if (!hideBackButton) {
+          <button type="button" class="btn btn-secondary" (click)="goBack()">
+            <mat-icon class="inline-mat-icon">arrow_back</mat-icon> Back to Dashboard
+          </button>
+        }
+        <button type="submit" class="btn btn-primary btn-lg" [disabled]="isSubmitting()">
+          @if (isSubmitting()) {
+            <mat-icon class="inline-mat-icon spin-icon">sync</mat-icon> Saving Changes...
+          } @else {
+            Update Doctor Profile <mat-icon class="inline-mat-icon">arrow_forward</mat-icon>
+          }
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

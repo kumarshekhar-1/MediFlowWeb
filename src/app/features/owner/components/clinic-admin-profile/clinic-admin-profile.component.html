@@ -1,0 +1,170 @@
+<div class="content-pad">
+  <div class="medical-card" style="max-width: 800px; margin: 2rem auto; padding: 2.5rem;">
+    <!-- Api feedback messages -->
+    @if (apiSuccess()) {
+      <div class="api-feedback success mb-4" style="display: flex; align-items: center; gap: 8px; background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.2); color: #22c55e; padding: 12px; border-radius: 6px; font-size: 0.9rem;">
+        <mat-icon>check_circle</mat-icon>
+        <span>{{ apiSuccess() }}</span>
+      </div>
+    }
+    @if (apiError()) {
+      <div class="api-feedback error mb-4" style="display: flex; align-items: center; gap: 8px; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); color: #ef4444; padding: 12px; border-radius: 6px; font-size: 0.9rem;">
+        <mat-icon>error</mat-icon>
+        <span>{{ apiError() }}</span>
+      </div>
+    }
+
+    <div class="auth-header">
+      <div class="auth-logo">
+        <mat-icon style="font-size: 3rem; width: 3rem; height: 3rem;">storefront</mat-icon>
+      </div>
+      <h2 class="auth-title">Clinic Administration Settings</h2>
+      <p class="auth-desc">
+        Manage clinic name, licensing, address, owner contact, and specialties (ID: <strong>{{ clinicSession.clinic()?.clinicId || clinicSession.clinicId }}</strong>).
+      </p>
+    </div>
+
+    <form [formGroup]="clinicForm" (ngSubmit)="submitClinic()">
+      <div class="form-section-title">Clinic Brand &amp; Licensing</div>
+      <div class="form-grid-2">
+
+        <div class="form-group">
+          <label>Clinic Brand Name <span class="req-star">*</span></label>
+          <input type="text" class="form-control" [class.input-error]="hasError(clinicForm, 'clinicName')"
+            formControlName="clinicName" placeholder="e.g. Apollo Care Clinic">
+          @if (hasError(clinicForm, 'clinicName', 'required')) {
+            <span class="field-error">Clinic name is required</span>
+          }
+        </div>
+
+        <div class="form-group">
+          <label>Licensing Registration Number (Read Only)</label>
+          <input type="text" class="form-control disabled-input" formControlName="clinicRegistrationNumber">
+        </div>
+
+      </div>
+
+      <div class="form-section-title mt-6">Primary Owner Information</div>
+      <div class="form-grid-2">
+
+        <div class="form-group">
+          <label>Owner Full Name <span class="req-star">*</span></label>
+          <input type="text" class="form-control" [class.input-error]="hasError(clinicForm, 'ownerName')"
+            formControlName="ownerName" placeholder="Ramesh Gupta">
+          @if (hasError(clinicForm, 'ownerName', 'required')) {
+            <span class="field-error">Owner name is required</span>
+          }
+        </div>
+
+        <div class="form-group">
+          <label>Contact Mobile Number <span class="req-star">*</span></label>
+          <div class="input-with-icon">
+            <span class="input-icon">🇮🇳 +91</span>
+            <input type="tel" class="form-control with-icon" [class.input-error]="hasError(clinicForm, 'ownerPhoneNumber')"
+              formControlName="ownerPhoneNumber"
+              (keypress)="onlyDigits($event)"
+              (paste)="onPasteDigits($event, clinicForm, 'ownerPhoneNumber')"
+              placeholder="9876543210" maxlength="10">
+          </div>
+          @if (hasError(clinicForm, 'ownerPhoneNumber', 'required')) {
+            <span class="field-error">Owner phone is required</span>
+          }
+        </div>
+
+        <div class="form-group">
+          <label>Owner Email Address <span class="req-star">*</span></label>
+          <input type="email" class="form-control" [class.input-error]="hasError(clinicForm, 'ownerEmail')"
+            formControlName="ownerEmail" placeholder="owner@clinic.com">
+          @if (hasError(clinicForm, 'ownerEmail', 'required')) {
+            <span class="field-error">Owner email is required</span>
+          }
+        </div>
+
+        <div class="form-group">
+          <label>Clinic Operating Status</label>
+          <select class="form-control" formControlName="status" style="padding: 0.625rem 0.85rem;">
+            <option value="ACTIVE">ACTIVE (Open for bookings)</option>
+            <option value="SUSPENDED">SUSPENDED (Temporarily closed)</option>
+          </select>
+        </div>
+
+      </div>
+
+      <div class="form-section-title mt-6">Geographic &amp; Address Parameters</div>
+      <div class="form-grid-2">
+
+        <div class="form-group full-width">
+          <label>Address Line <span class="req-star">*</span></label>
+          <input type="text" class="form-control" [class.input-error]="hasError(clinicForm, 'addressLine')"
+            formControlName="addressLine" placeholder="Flat / Shop No, Building name, Street">
+          @if (hasError(clinicForm, 'addressLine', 'required')) {
+            <span class="field-error">Address is required</span>
+          }
+        </div>
+
+        <div class="form-group">
+          <label>City <span class="req-star">*</span></label>
+          <input type="text" class="form-control" [class.input-error]="hasError(clinicForm, 'city')"
+            formControlName="city" placeholder="Bengaluru">
+          @if (hasError(clinicForm, 'city', 'required')) {
+            <span class="field-error">City is required</span>
+          }
+        </div>
+
+        <div class="form-group">
+          <label>State <span class="req-star">*</span></label>
+          <input type="text" class="form-control" [class.input-error]="hasError(clinicForm, 'state')"
+            formControlName="state" placeholder="e.g. Karnataka">
+        </div>
+
+        <div class="form-group">
+          <label>Pincode / ZIP <span class="req-star">*</span></label>
+          <input type="text" class="form-control" [class.input-error]="hasError(clinicForm, 'pincode')"
+            formControlName="pincode"
+            (keypress)="onlyDigits($event)"
+            (paste)="onPasteDigits($event, clinicForm, 'pincode')"
+            placeholder="560038" maxlength="6">
+          @if (hasError(clinicForm, 'pincode', 'required')) {
+            <span class="field-error">Pincode is required</span>
+          } @else if (hasError(clinicForm, 'pincode', 'pattern')) {
+            <span class="field-error">Enter a valid 6-digit Pincode</span>
+          }
+        </div>
+
+      </div>
+
+      <div class="form-section-title mt-6">Clinical Specializations &amp; Care Areas</div>
+      <p class="section-hint">Select the medical categories offered at this clinic. These will be visible to patients during online booking.</p>
+      
+      <div class="specializations-grid">
+        @for (spec of availableSpecialties; track spec) {
+          <div 
+            class="spec-chip" 
+            [class.selected]="isSpecialtySelected(spec)"
+            (click)="toggleSpecialty(spec)">
+            <mat-icon class="chip-icon">{{ isSpecialtySelected(spec) ? 'check' : 'add' }}</mat-icon>
+            <span>{{ spec }}</span>
+          </div>
+        }
+      </div>
+      @if (hasError(clinicForm, 'specializations', 'required')) {
+        <span class="field-error">Please select at least one medical specialization.</span>
+      }
+
+      <!-- Actions -->
+      <div class="auth-actions">
+        <button type="button" class="btn btn-secondary" (click)="goBack()">
+          <mat-icon class="inline-mat-icon">arrow_back</mat-icon> Back to Dashboard
+        </button>
+        <button type="submit" class="btn btn-primary btn-lg" [disabled]="isSubmitting()">
+          @if (isSubmitting()) {
+            <mat-icon class="inline-mat-icon spin-icon">sync</mat-icon> Updating Profile...
+          } @else {
+            Update Clinic Profile <mat-icon class="inline-mat-icon">arrow_forward</mat-icon>
+          }
+        </button>
+      </div>
+
+    </form>
+  </div>
+</div>

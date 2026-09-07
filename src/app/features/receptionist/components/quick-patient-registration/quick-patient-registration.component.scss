@@ -1,0 +1,67 @@
+/* Quick Patient Registration Dialog - Custom Styles */
+
+/* Phone/Emergency input with country flag icon prefix */
+.input-with-icon {
+  display: flex;
+  align-items: center;
+  border: 1.5px solid rgba(191, 219, 254, 0.6);
+  border-radius: var(--radius-md, 8px);
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(8px);
+  overflow: hidden;
+  transition: all 0.2s ease;
+
+  &:focus-within {
+    border-color: var(--navy-600, #1e3a5f);
+    background: #ffffff;
+    box-shadow: 0 0 0 3.5px rgba(37, 99, 235, 0.15);
+  }
+
+  .input-icon {
+    padding: 0.625rem 0.85rem;
+    background: rgba(239, 246, 255, 0.8);
+    border-right: 1px solid rgba(191, 219, 254, 0.6);
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--navy-700, #1e3a5f);
+    white-space: nowrap;
+  }
+
+  .form-control.with-icon {
+    border: none;
+    box-shadow: none;
+    background: transparent;
+  }
+
+  &:has(.input-error) {
+    border-color: #dc2626;
+    box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.15);
+  }
+}
+
+/* Datepicker wrapper */
+.mat-date-field-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+
+  .mat-date-custom-input {
+    padding-right: 3rem;
+  }
+
+  .mat-date-toggle-btn {
+    position: absolute;
+    right: 0.5rem;
+    color: var(--navy-600);
+  }
+}
+
+/* Spinning icon for submit loading state */
+.spin-icon {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}

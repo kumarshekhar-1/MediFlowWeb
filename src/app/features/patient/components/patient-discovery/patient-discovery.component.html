@@ -1,0 +1,119 @@
+<!-- Search & Filter Bar -->
+<div class="search-filter-bar">
+  <div style="display: flex; gap: 1.25rem; align-items: center; flex-wrap: wrap; width: 100%;">
+    <div class="filter-input-wrap">
+      <mat-icon class="search-icon-prefix">search</mat-icon>
+      <input 
+        type="text" 
+        [(ngModel)]="doctorSearch" 
+        (ngModelChange)="onSearchChanged($event)"
+        placeholder="Search by doctor, specialty, or clinic..." 
+        class="filter-input">
+    </div>
+
+    <div class="clinic-filter-wrap">
+      <app-custom-select 
+        [options]="discoveryClinicSelectOptions" 
+        [selectedValue]="discoveryClinicId" 
+        (selectionChange)="onDiscoveryClinicSelected($event)"
+        placeholder="Filter by Clinic / Hospital...">
+      </app-custom-select>
+    </div>
+  </div>
+  
+  <div class="specialty-chips">
+    <span 
+      class="chip" 
+      [class.active]="selectedSpecialty === 'ALL'" 
+      (click)="onSpecialtySelected('ALL')">
+      All Specialties
+    </span>
+    @for (spec of specialties; track spec) {
+      <span 
+        class="chip" 
+        [class.active]="selectedSpecialty === spec" 
+        (click)="onSpecialtySelected(spec)">
+        {{ spec }}
+      </span>
+    }
+  </div>
+</div>
+
+<!-- Doctor Cards Grid -->
+@if (apiDoctorsLoading) {
+  <div class="loading-state">
+    <div class="loading-spinner"></div>
+    <p>Finding doctors for you...</p>
+  </div>
+} @else {
+  <div class="doctors-grid">
+    @for (doc of filteredDoctors; track doc.id) {
+      <div class="doc-profile-card">
+        <div class="doc-card-header">
+          <div class="doc-card-avatar">{{ doc.name.replace('Dr. ', '').trim().charAt(0) }}</div>
+          <div class="doc-info-col">
+            <h3 class="doc-title">{{ doc.name }}</h3>
+            <div class="doc-meta-row">
+              <span class="doc-spec">{{ doc.specialization }}</span>
+              @if (doc.qualification) {
+                <span class="doc-bullet">•</span>
+                <span class="doc-qual">{{ doc.qualification }}</span>
+              }
+            </div>
+            @if (doc.hospitalName) {
+              <span class="doc-clinic">
+                <mat-icon class="inline-mat-icon">local_hospital</mat-icon> 
+                {{ doc.hospitalName }}
+              </span>
+            }
+          </div>
+        </div>
+
+        <div class="doc-stats-ribbon">
+          <div>
+            <span class="d-stat-label">Experience</span>
+            <strong>{{ doc.experienceYears }}+ Years</strong>
+          </div>
+          <div>
+            <span class="d-stat-label">Consultation Fee</span>
+            <strong class="fee-text">₹{{ doc.consultationFee }}</strong>
+          </div>
+        </div>
+
+        <div class="doc-schedule-box">
+          @if (doc.workingDays && doc.workingDays.length > 0) {
+            <div class="schedule-item">
+              <mat-icon class="inline-mat-icon">calendar_today</mat-icon>
+              <span>{{ doc.workingDays.join(', ') }}</span>
+            </div>
+          }
+          @if (doc.workingHours) {
+            <div class="schedule-item">
+              <mat-icon class="inline-mat-icon">schedule</mat-icon>
+              <span>{{ doc.workingHours }}</span>
+            </div>
+          }
+        </div>
+
+        <button type="button" class="btn btn-primary btn-block" (click)="onBookClick(doc)">
+          Book Consultation <mat-icon class="inline-mat-icon">arrow_forward</mat-icon>
+        </button>
+      </div>
+    } @empty {
+      <div class="empty-state">
+        <mat-icon class="empty-icon">search_off</mat-icon>
+        <h3>No doctors found</h3>
+        <p>
+          @if (doctorSearch) {
+            No results for <strong>"{{ doctorSearch }}"</strong>. Try a different name, specialty, or clinic.
+          } @else {
+            No doctors are available for the selected filters. Try adjusting your specialty or clinic filter.
+          }
+        </p>
+        <button type="button" class="btn btn-outline-primary" (click)="onSearchChanged(''); doctorSearch = ''; onSpecialtySelected('ALL')">
+          <mat-icon class="inline-mat-icon">refresh</mat-icon> Clear Filters
+        </button>
+      </div>
+    }
+  </div>
+}

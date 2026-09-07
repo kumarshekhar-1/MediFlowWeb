@@ -1,0 +1,127 @@
+.material-calendar-card {
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--surface-border-glass);
+  border-radius: var(--radius-xl);
+  padding: 1.25rem;
+  box-shadow: var(--shadow-glass);
+  max-width: 420px;
+  width: 100%;
+}
+
+.cal-quick-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(191, 219, 254, 0.6);
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.cal-header-label {
+  font-size: 0.875rem;
+  font-weight: 800;
+  color: var(--navy-950);
+}
+
+.cal-quick-chips {
+  display: flex;
+  gap: 0.4rem;
+
+  .quick-chip {
+    font-size: 0.75rem;
+    font-weight: 750;
+    padding: 0.25rem 0.65rem;
+    border-radius: var(--radius-full);
+    background: rgba(239, 246, 255, 0.8);
+    color: var(--navy-700);
+    border: 1px solid rgba(191, 219, 254, 0.8);
+    transition: all 0.15s ease;
+
+    &:hover {
+      background: linear-gradient(135deg, #0b152e, #1e3a8a);
+      color: #ffffff;
+      border-color: transparent;
+    }
+  }
+}
+
+.cal-schedule-label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.775rem;
+  font-weight: 700;
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--radius-md);
+  background: rgba(239, 246, 255, 0.85);
+  color: var(--navy-700);
+  border: 1px solid rgba(191, 219, 254, 0.8);
+
+  .inline-mat-icon {
+    font-size: 0.95rem;
+    width: 0.95rem;
+    height: 0.95rem;
+    color: var(--navy-600);
+  }
+}
+
+/* Angular Material Calendar Styling Customization */
+::ng-deep .custom-mat-calendar {
+  width: 100% !important;
+
+  .mat-calendar-header {
+    padding: 0 0 0.5rem 0;
+  }
+
+  .mat-calendar-controls {
+    margin: 0 !important;
+  }
+
+  .mat-calendar-body-cell-content {
+    border-radius: var(--radius-md) !important;
+    font-weight: 600;
+  }
+
+  .mat-calendar-body-selected {
+    background: linear-gradient(135deg, #0b152e 0%, #1e3a8a 100%) !important;
+    color: #ffffff !important;
+    font-weight: 800;
+    box-shadow: 0 2px 8px rgba(11, 21, 46, 0.3) !important;
+  }
+
+  .mat-calendar-body-today:not(.mat-calendar-body-selected) {
+    border-color: var(--navy-500) !important;
+    color: var(--navy-700) !important;
+    font-weight: 800;
+  }
+}
+
+.cal-selected-banner {
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(191, 219, 254, 0.6);
+
+  .selected-pill {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(239, 246, 255, 0.85);
+    border: 1px solid rgba(191, 219, 254, 0.8);
+    padding: 0.55rem 0.85rem;
+    border-radius: var(--radius-md);
+    font-size: 0.825rem;
+    color: var(--navy-800);
+    font-weight: 700;
+
+    .cal-icon {
+      font-size: 1.1rem;
+      width: 1.1rem;
+      height: 1.1rem;
+      color: var(--navy-600);
+    }
+  }
+}

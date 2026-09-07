@@ -1,0 +1,76 @@
+<div class="modal-box">
+  <div class="split-header">
+    <h3>Onboard New Receptionist</h3>
+    <button type="button" class="btn btn-secondary btn-sm" (click)="cancel()">
+      <mat-icon class="inline-mat-icon">close</mat-icon>
+    </button>
+  </div>
+
+  <form [formGroup]="receptionistForm" (ngSubmit)="submit()">
+    <div class="modal-body">
+
+      @if (registerError()) {
+        <div class="api-feedback error">
+          <mat-icon>error</mat-icon>
+          <span>{{ registerError() }}</span>
+        </div>
+      }
+
+      <div class="form-grid-2">
+
+        <!-- Name -->
+        <div class="form-group">
+          <label>Full Receptionist Name <span class="req-star">*</span></label>
+          <input type="text" class="form-control" [class.input-error]="hasError('name')"
+            formControlName="name" placeholder="e.g. Sunita Sharma">
+          @if (hasError('name', 'required')) {
+            <span class="field-error">Name is required</span>
+          } @else if (hasError('name', 'pattern')) {
+            <span class="field-error">Name cannot have leading/trailing spaces</span>
+          }
+        </div>
+
+        <!-- Mobile Number -->
+        <div class="form-group">
+          <label>Mobile Number <span class="req-star">*</span></label>
+          <div class="input-with-icon">
+            <span class="input-icon">🇮🇳 +91</span>
+            <input type="tel" class="form-control with-icon" [class.input-error]="hasError('mobileNumber')"
+              formControlName="mobileNumber" (keypress)="onlyDigits($event)"
+              (paste)="onPasteDigits($event, 'mobileNumber')" placeholder="9876543210" maxlength="10">
+          </div>
+          @if (hasError('mobileNumber', 'required')) {
+            <span class="field-error">Mobile number is required</span>
+          } @else if (hasError('mobileNumber', 'pattern')) {
+            <span class="field-error">Enter a valid 10-digit mobile number</span>
+          }
+        </div>
+
+        <!-- Email -->
+        <div class="form-group">
+          <label>Official Email Address <span class="req-star">*</span></label>
+          <input type="email" class="form-control" [class.input-error]="hasError('email')"
+            formControlName="email" placeholder="reception@clinic.com">
+          @if (hasError('email', 'required')) {
+            <span class="field-error">Email is required</span>
+          } @else if (hasError('email', 'pattern')) {
+            <span class="field-error">Enter a valid email address</span>
+          }
+        </div>
+
+      </div>
+
+    </div>
+
+    <div class="modal-actions mt-4">
+      <button type="button" class="btn btn-secondary" (click)="cancel()">Cancel</button>
+      <button type="submit" class="btn btn-primary" [disabled]="registerSubmitting()">
+        @if (registerSubmitting()) {
+          <mat-icon class="inline-mat-icon spin-icon">sync</mat-icon> Processing...
+        } @else {
+          <mat-icon class="inline-mat-icon">check</mat-icon> Onboard Receptionist
+        }
+      </button>
+    </div>
+  </form>
+</div>

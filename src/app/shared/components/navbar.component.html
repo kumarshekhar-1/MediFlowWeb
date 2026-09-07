@@ -1,0 +1,68 @@
+<header class="top-navbar no-print">
+  <!-- Brand Zone & Home Link -->
+  <div class="brand-zone" (click)="goToLanding()" title="Go to Platform Landing Page">
+    <div class="brand-icon">
+      <mat-icon>local_hospital</mat-icon>
+    </div>
+    <div class="brand-text">
+      <span class="brand-name">MediFlow<span class="os-badge">OS</span></span>
+      <span class="brand-tenant">
+        @if (db.isAuthenticated() && db.currentUser().role === 'DOCTOR') {
+          {{ doctorSession.doctor()?.clinicName || '—' }}
+        } @else if (db.isAuthenticated() && (db.currentUser().role === 'OWNER' || db.currentUser().role === 'RECEPTIONIST')) {
+          {{ clinicSession.clinicName() }}
+        } @else if (db.isAuthenticated() && db.currentUser().role === 'PATIENT') {
+          Patient Care Portal
+        } @else {
+          Healthcare Cloud
+        }
+      </span>
+    </div>
+  </div>
+
+  @if (db.isAuthenticated()) {
+
+    <!-- Authenticated User Profile with MatMenu Dropdown -->
+    <div class="user-meta-dropdown" [matMenuTriggerFor]="userMenu">
+      <div class="user-avatar" [attr.data-role]="db.currentUser().role">
+        {{ (displayedUserName() || 'U').charAt(0).toUpperCase() }}
+      </div>
+      <div class="user-details">
+        <span class="user-name">{{ displayedUserName() }}</span>
+        <span class="user-role-badge badge-{{ db.currentUser().role.toLowerCase() }}">
+          {{ db.currentUser().role }}
+        </span>
+      </div>
+      <mat-icon class="dropdown-chevron">arrow_drop_down</mat-icon>
+    </div>
+
+    <!-- MatMenu with only two clean items: My Profile & Logout -->
+    <mat-menu #userMenu="matMenu" class="custom-user-mat-menu" xPosition="before">
+      <button mat-menu-item (click)="goToProfile()" class="user-menu-item">
+        <mat-icon class="menu-icon primary">account_circle</mat-icon>
+        <span class="menu-label">My Profile</span>
+      </button>
+      <mat-divider class="menu-divider"></mat-divider>
+      <button mat-menu-item (click)="logout()" class="user-menu-item logout-item">
+        <mat-icon class="menu-icon danger">logout</mat-icon>
+        <span class="menu-label text-danger">Logout</span>
+      </button>
+    </mat-menu>
+  } @else {
+    <!-- Public Visitor Navigation Links -->
+    <div class="nav-links-group">
+      <button type="button" class="nav-btn-link" [class.active]="db.currentView() === 'LANDING'" (click)="goToLanding()">
+        <mat-icon class="inline-mat-icon">home</mat-icon> Home
+      </button>
+      <button type="button" class="nav-btn-link" [class.active]="db.currentView() === 'REGISTER_PATIENT'" (click)="goToRegisterPatient()">
+        <mat-icon class="inline-mat-icon">person_add</mat-icon> Patient Sign-Up
+      </button>
+      <button type="button" class="nav-btn-link highlight" [class.active]="db.currentView() === 'REGISTER_CLINIC'" (click)="goToRegisterClinic()">
+        <mat-icon class="inline-mat-icon">domain_add</mat-icon> Register Clinic
+      </button>
+      <button type="button" class="btn btn-primary btn-sm" (click)="goToAuth()">
+        <mat-icon class="inline-mat-icon">login</mat-icon> Sign In
+      </button>
+    </div>
+  }
+</header>

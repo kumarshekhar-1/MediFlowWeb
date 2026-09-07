@@ -1,0 +1,216 @@
+<div class="map-locator-container">
+  <!-- Top Location & Filter Header Bar -->
+  <div class="locator-top-bar">
+    <div class="top-row">
+      <div class="user-location-info">
+        <mat-icon class="loc-pin-icon">location_on</mat-icon>
+        <div>
+          <span class="loc-label">Your Location</span>
+          <strong class="loc-address">{{ userLocationName() }}</strong>
+        </div>
+        <button type="button" class="btn btn-outline btn-sm" (click)="requestUserLocation()">
+          <mat-icon class="inline-mat-icon">my_location</mat-icon> Detect GPS
+        </button>
+      </div>
+
+      <!-- Distance Radius Filter Chips -->
+      <div class="filter-chips">
+        <span 
+          class="chip" 
+          [class.active]="selectedDistanceFilter() === 0" 
+          (click)="selectedDistanceFilter.set(0); loadClinics()">
+          All Distances
+        </span>
+        <span 
+          class="chip" 
+          [class.active]="selectedDistanceFilter() === 5" 
+          (click)="selectedDistanceFilter.set(5); loadClinics()">
+          &lt; 5 km
+        </span>
+        <span 
+          class="chip" 
+          [class.active]="selectedDistanceFilter() === 10" 
+          (click)="selectedDistanceFilter.set(10); loadClinics()">
+          &lt; 10 km
+        </span>
+        <span 
+          class="chip" 
+          [class.active]="selectedDistanceFilter() === 25" 
+          (click)="selectedDistanceFilter.set(25); loadClinics()">
+          &lt; 25 km
+        </span>
+      </div>
+    </div>
+
+    <!-- Backend Query Parameter Filters Grid -->
+    <div class="filters-grid">
+      <!-- Clinic Name Keyword Filter -->
+      <div class="filter-field">
+        <label class="field-label">Clinic Name</label>
+        <div class="input-with-icon">
+          <mat-icon class="field-icon">search</mat-icon>
+          <input 
+            type="text" 
+            [ngModel]="searchClinicName()" 
+            (ngModelChange)="searchClinicName.set($event); loadClinics()"
+            placeholder="Search clinic name..."
+            class="filter-input">
+        </div>
+      </div>
+
+      <!-- Specialization Filter -->
+      <div class="filter-field">
+        <label class="field-label">Specialization</label>
+        <div class="input-with-icon">
+          <mat-icon class="field-icon">medical_services</mat-icon>
+          <select 
+            [ngModel]="selectedSpecialization()" 
+            (ngModelChange)="selectedSpecialization.set($event); loadClinics()"
+            class="filter-select">
+            <option value="">All Specializations</option>
+            @for (spec of specializationsList; track spec) {
+              <option [value]="spec">{{ spec.replace('_', ' ') }}</option>
+            }
+          </select>
+        </div>
+      </div>
+
+      <!-- Reset Filters Button -->
+      <div class="filter-field filter-actions">
+        <button type="button" class="btn btn-secondary btn-sm" (click)="resetFilters()">
+          <mat-icon class="inline-mat-icon">restart_alt</mat-icon> Reset Filters
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dual-Pane Map & Hospital List Layout -->
+  <div class="locator-dual-layout">
+    <!-- Left Pane: Nearby Hospital List with Distance Cards -->
+    <div class="hospitals-sidebar">
+      <div class="sidebar-header">
+        <h3>Facilities ({{ clinicsWithDistance().length }})</h3>
+        <span class="sub-text">Clinics &amp; Medical Facilities</span>
+      </div>
+
+      @if (apiLoading()) {
+        <div class="field-loading-badge p-4 text-center">
+          <mat-icon class="inline-mat-icon spin-icon">sync</mat-icon> Searching clinics...
+        </div>
+      }
+
+      <div class="hospital-cards-list">
+        @for (c of clinicsWithDistance(); track c.id) {
+          <div 
+            class="medical-card hospital-item-card" 
+            [class.active]="selectedClinic()?.id === c.id"
+            (click)="selectClinic(c)">
+            
+            <div class="h-card-top">
+              <div>
+                <span class="facility-badge badge-{{ c.type.toLowerCase().replace('_', '-') }}">
+                  {{ c.type.replace('_', ' ') }}
+                </span>
+                <h4 class="h-name">{{ c.name }}</h4>
+                @if (c.address) {
+                  <p class="h-addr">
+                    <mat-icon class="inline-mat-icon">location_on</mat-icon> {{ c.address }}
+                  </p>
+                }
+              </div>
+
+              <!-- Distance & Driving Estimate Badge (if GPS coordinates exist) -->
+              @if (c.distanceKm !== undefined) {
+                <div class="distance-pill">
+                  <span class="dist-num">{{ c.distanceKm }} km</span>
+                  @if (c.travelMins) {
+                    <span class="drive-time">
+                      <mat-icon class="inline-mat-icon">directions_car</mat-icon> ~{{ c.travelMins }} mins
+                    </span>
+                  }
+                </div>
+              }
+            </div>
+
+            <div class="h-card-meta">
+              @if (c.openingHours) {
+                <div class="meta-row">
+                  <span><mat-icon class="inline-mat-icon">schedule</mat-icon> {{ c.openingHours }}</span>
+                </div>
+              }
+              <div class="meta-row">
+                @if (c.rating) {
+                  <span><mat-icon class="inline-mat-icon text-amber">star</mat-icon> <strong>{{ c.rating }}</strong> @if (c.totalReviews) {({{ c.totalReviews }}+ reviews)}</span>
+                }
+                @if (c.contact) {
+                  <span class="emergency-badge"><mat-icon class="inline-mat-icon">phone_in_talk</mat-icon> {{ c.contact }}</span>
+                }
+              </div>
+            </div>
+
+            <!-- Quick Action Buttons -->
+            <div class="h-card-actions">
+              <button 
+                type="button" 
+                class="btn btn-outline btn-sm" 
+                (click)="$event.stopPropagation(); openExternalGoogleMaps(c)">
+                <mat-icon class="inline-mat-icon">directions</mat-icon> Directions
+              </button>
+              
+              <button 
+                type="button" 
+                class="btn btn-primary btn-sm" 
+                (click)="$event.stopPropagation(); switchClinicAndBook(c)">
+                Book Here <mat-icon class="inline-mat-icon">arrow_forward</mat-icon>
+              </button>
+            </div>
+          </div>
+        } @empty {
+          <div class="no-hospitals-msg">
+            <p>No clinics found matching your search filter criteria.</p>
+            <button type="button" class="btn btn-secondary btn-sm" (click)="resetFilters()">
+              Reset Filters
+            </button>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Right Pane: Interactive Google Map View -->
+    <div class="map-view-pane">
+      @if (selectedClinic()) {
+        <!-- Selected Clinic Highlight Bar -->
+        <div class="selected-clinic-banner">
+          <div class="banner-left">
+            <h4>{{ selectedClinic()!.name }}</h4>
+            <p>
+              {{ selectedClinic()!.address }}
+              @if (selectedClinic()!.distanceKm !== undefined) {
+                • <strong>{{ selectedClinic()!.distanceKm }} km away</strong>
+              }
+            </p>
+          </div>
+          <button 
+            type="button" 
+            class="btn btn-emerald btn-sm" 
+            (click)="openExternalGoogleMaps(selectedClinic()!)">
+            <mat-icon class="inline-mat-icon">open_in_new</mat-icon> Open Google Maps
+          </button>
+        </div>
+
+        <!-- Google Maps Embed Iframe -->
+        <div class="iframe-map-wrapper">
+          <iframe 
+            [src]="mapEmbedUrl()" 
+            width="100%" 
+            height="100%" 
+            style="border:0;" 
+            allowfullscreen="" 
+            loading="lazy" 
+            referrerpolicy="no-referrer-when-downgrade">
+          </iframe>
+        </div>
+      }
+    </div>
+  </div>
+</div>

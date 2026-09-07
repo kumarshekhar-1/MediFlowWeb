@@ -1,0 +1,219 @@
+<div class="modal-box guest-booking-modal-box" style="margin: 0; max-width: 100%; width: 100%; box-shadow: none; border-radius: 0;">
+  <!-- Header -->
+  <div class="split-header">
+    <div class="d-flex align-items-center gap-2">
+      <div class="modal-icon-badge">
+        <mat-icon>calendar_month</mat-icon>
+      </div>
+      <div>
+        <h3 class="section-title mb-0">
+          {{ bookingStep() === 1 ? 'Book Doctor Appointment' : 'Appointment Confirmed!' }}
+        </h3>
+        <p class="sub-text mb-0">
+          {{ bookingStep() === 1 ? 'Instant appointment booking without requiring account registration.' : 'Your queue token and visit details are ready.' }}
+        </p>
+      </div>
+    </div>
+    <button type="button" class="close-modal-btn" (click)="close()">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <!-- STEP 1: Fast Booking Form -->
+  @if (bookingStep() === 1) {
+    <form (ngSubmit)="submitGuestBooking()" class="guest-booking-form">
+      <div class="modal-body">
+        <div class="booking-dialog-grid">
+          
+          <!-- LEFT COLUMN: Patient & Doctor Info -->
+          <div class="booking-col-left">
+            <div class="form-grid-2">
+              <!-- Patient Name -->
+              <div class="form-group">
+                <label class="form-label">Patient Full Name <span class="req-star">*</span></label>
+                <input 
+                  type="text" 
+                  class="form-control" 
+                  [(ngModel)]="guestForm.patientName" 
+                  name="guestPatientName" 
+                  required 
+                  placeholder="e.g. Rahul Verma">
+              </div>
+
+              <!-- Mobile Number -->
+              <div class="form-group">
+                <label class="form-label">Mobile Number <span class="req-star">*</span></label>
+                <div class="phone-input-group">
+                  <span class="country-prefix">🇮🇳 +91</span>
+                  <input 
+                    type="tel" 
+                    class="form-control phone-input" 
+                    [(ngModel)]="guestForm.mobileNumber" 
+                    name="guestMobileNumber" 
+                    required 
+                    placeholder="9876543210"
+                    maxlength="10">
+                </div>
+              </div>
+            </div>
+
+            <!-- Clinic Branch Selection using Custom Select -->
+            <div class="form-group mt-3">
+              <label class="form-label">1. Select Hospital / Clinic Branch <span class="req-star">*</span></label>
+              <app-custom-select 
+                [options]="clinicSelectOptions()" 
+                [selectedValue]="guestForm.clinicId" 
+                (selectionChange)="onClinicChange($event)"
+                placeholder="Choose a Clinic Branch...">
+              </app-custom-select>
+            </div>
+
+            <!-- Doctor Selection using Custom Select -->
+            <div class="form-group mt-3">
+              <label class="form-label">2. Select Specialist Doctor <span class="req-star">*</span></label>
+              <app-custom-select 
+                [options]="doctorSelectOptions()" 
+                [selectedValue]="guestForm.doctorId" 
+                (selectionChange)="onDoctorSelected($event)"
+                placeholder="Choose a doctor...">
+              </app-custom-select>
+            </div>
+
+            <!-- Reason for visit -->
+            <div class="form-group mt-3">
+              <label class="form-label">4. Reason for Visit</label>
+              <input 
+                type="text" 
+                class="form-control" 
+                [(ngModel)]="guestForm.reasonForVisit" 
+                name="guestReasonForVisit" 
+                placeholder="e.g. Chest pain, Fever, Routine Checkup">
+              </div>
+            </div>
+
+            <!-- RIGHT COLUMN: Calendar Picker & Time Slots -->
+            <div class="booking-col-right">
+              <!-- Calendar Picker Component -->
+              <div class="form-group cal-section-wrapper">
+                <label class="form-label">3. Consultation Date (Doctor Available Days Only) <span class="req-star">*</span></label>
+                <app-calendar-picker 
+                  [selectedDate]="guestForm.appointmentDate" 
+                  [allowedWeekdays]="allowedDoctorWeekdays()"
+                  (dateChange)="onDateChanged($event)">
+                </app-calendar-picker>
+              </div>
+
+              <!-- Time Slot Chips -->
+              <div class="form-group mt-3">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <label class="form-label mb-0">5. Select Time Slot <span class="req-star">*</span></label>
+                  @if (isLoadingSlots()) {
+                    <span class="slot-loading-tag">
+                      <mat-icon class="spin-icon">sync</mat-icon> Checking...
+                    </span>
+                  }
+                </div>
+
+                <div class="slot-chips-grid">
+                  @for (slot of availableSlotsList(); track slot) {
+                    <button 
+                      type="button" 
+                      class="slot-chip-btn" 
+                      [class.selected]="guestForm.timeSlot === slot"
+                      (click)="guestForm.timeSlot = slot">
+                      <mat-icon class="tiny-icon">schedule</mat-icon> {{ slot }}
+                    </button>
+                  } @empty {
+                    <div class="p-3 bg-light rounded text-center sub-text w-100 border">
+                      No open slots found for selected date.
+                    </div>
+                  }
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          @if (bookingErrorMsg()) {
+            <div class="alert alert-danger mt-3" style="display: flex; align-items: center; gap: 8px; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); color: #ef4444; padding: 10px; border-radius: 6px;">
+              <mat-icon class="inline-mat-icon">error</mat-icon> {{ bookingErrorMsg() }}
+            </div>
+          }
+        </div>
+
+        <!-- Submit Button Footer -->
+        <div class="modal-actions" style="display: flex; justify-content: flex-end; gap: 0.75rem; border-top: 1px solid #e2e8f0; padding: 1.25rem 1.75rem; background: #f8fafc;">
+          <button type="button" class="btn btn-secondary" (click)="close()" [disabled]="isSubmittingBooking()">
+            Cancel
+          </button>
+          <button 
+            type="submit" 
+            class="btn btn-primary btn-submit-book" 
+            [disabled]="isSubmittingBooking() || !guestForm.patientName || !guestForm.mobileNumber || !guestForm.doctorId">
+            <mat-icon class="inline-mat-icon">check_circle</mat-icon>
+            {{ isSubmittingBooking() ? 'Booking & Generating Token...' : 'Confirm & Book Appointment' }}
+          </button>
+        </div>
+      </form>
+    }
+
+    <!-- STEP 2: Instant Booking Confirmation & Token Display -->
+    @if (bookingStep() === 2 && bookingSuccessData()) {
+      <div class="booking-confirmation-view text-center mt-3" style="padding: 1.5rem 2rem;">
+        
+        <div class="confirmation-check-badge">
+          <mat-icon>task_alt</mat-icon>
+        </div>
+
+        <h2 class="confirm-title">Appointment Confirmed!</h2>
+        <p class="confirm-subtitle">Your appointment has been registered and verified with the clinic desk.</p>
+
+        <!-- Large Token Display Card -->
+        <div class="token-confirmation-card">
+          <div class="token-display-top">
+            <span class="token-pill">QUEUE TOKEN</span>
+            <div class="token-hero-number">{{ bookingSuccessData().tokenNumber }}</div>
+            <span class="status-confirmed-pill">
+              <mat-icon class="tiny-icon">verified</mat-icon> Confirmed &amp; Paid (₹{{ bookingSuccessData().consultationFee }})
+            </span>
+          </div>
+
+          <div class="token-details-grid">
+            <div class="t-detail-item">
+              <span class="t-label">Doctor</span>
+              <strong>{{ bookingSuccessData().doctorName }}</strong>
+              <span class="sub-text">{{ bookingSuccessData().doctorSpecialization }}</span>
+            </div>
+
+            <div class="t-detail-item">
+              <span class="t-label">Clinic Branch</span>
+              <strong>{{ bookingSuccessData().clinicName }}</strong>
+              <span class="sub-text">{{ bookingSuccessData().clinicAddress }}</span>
+            </div>
+
+            <div class="t-detail-item">
+              <span class="t-label">Date &amp; Time</span>
+              <strong>{{ bookingSuccessData().appointmentDate }}</strong>
+              <span class="sub-text">{{ bookingSuccessData().timeSlot }}</span>
+            </div>
+
+            <div class="t-detail-item">
+              <span class="t-label">Patient Name (ID)</span>
+              <strong>{{ bookingSuccessData().patientName }}</strong>
+              <span class="sub-text mono">{{ bookingSuccessData().patientId }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Confirmation Actions -->
+        <div class="confirmation-actions-group mt-4">
+          <button type="button" class="btn btn-primary" (click)="goToPatientPortalFromBooking()">
+            <mat-icon class="inline-mat-icon">dashboard</mat-icon> View in Patient Portal &amp; Track Queue
+          </button>
+          <button type="button" class="btn btn-secondary" (click)="close()">
+            Done
+          </button>
+        </div>
+      </div>
+    }
+</div>

@@ -1,0 +1,58 @@
+<div class="content-pad">
+  <div class="medical-card" style="max-width: 800px; margin: 2rem auto; padding: 2.5rem;">
+    
+    <div class="auth-header">
+      <div class="auth-logo">
+        <mat-icon style="font-size: 3rem; width: 3rem; height: 3rem;">badge</mat-icon>
+      </div>
+      <h2 class="auth-title">Receptionist Profile</h2>
+      <p class="auth-desc">
+        Front desk staff account for <strong>{{ clinicSession.clinicName() }}</strong>.
+      </p>
+    </div>
+
+    <div class="readonly-profile-card">
+      <div class="form-section-title">Staff Credentials &amp; Duty Information</div>
+      <div class="info-grid-2">
+        <div class="info-item">
+          <span class="info-label">Full Name</span>
+          <span class="info-value">{{ db.currentUser().name }}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Role &amp; Access Level</span>
+          <span class="info-value">
+            <span class="badge badge-confirmed">Receptionist (Desk Staff)</span>
+          </span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Assigned Clinic Branch</span>
+          <span class="info-value">{{ clinicSession.clinicName() }} ({{ clinicSession.city() }})</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Official Email</span>
+          <span class="info-value">{{ db.currentUser().email || 'receptionist@apollocare.com' }}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Standard Shift Schedule</span>
+          <span class="info-value">09:00 AM – 05:00 PM (Monday to Saturday)</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Account Status</span>
+          <span class="info-value">
+            <span class="badge badge-paid">ACTIVE</span>
+          </span>
+        </div>
+      </div>
+      <p class="readonly-note mt-4">
+        <mat-icon class="inline-mat-icon">info</mat-icon> Staff profile updates and schedule shifts are managed by the Clinic Owner.
+      </p>
+    </div>
+
+    <div class="auth-actions">
+      <button type="button" class="btn btn-secondary" (click)="goBack()">
+        <mat-icon class="inline-mat-icon">arrow_back</mat-icon> Back to Reception Desk
+      </button>
+    </div>
+
+  </div>
+</div>

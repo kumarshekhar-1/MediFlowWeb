@@ -1,0 +1,84 @@
+<div class="prescriptions-header-bar">
+  <div class="rx-search-filter-wrap" style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+    <!-- Clinic Branch Dropdown Selector -->
+    <div style="min-width: 240px;">
+      <app-custom-select 
+        [options]="clinicSelectOptions"
+        [selectedValue]="selectedRxClinicId"
+        (selectionChange)="onRxClinicSelect($event)"
+        placeholder="All Clinics & Hospitals">
+      </app-custom-select>
+    </div>
+
+    <!-- Doctor Dropdown Selector -->
+    <div style="min-width: 200px;">
+      <app-custom-select 
+        [options]="doctorSelectOptions"
+        [selectedValue]="selectedRxDoctorId"
+        (selectionChange)="onRxDoctorSelect($event)"
+        placeholder="All Doctors">
+      </app-custom-select>
+    </div>
+  </div>
+
+  <span class="rx-count-badge">
+    {{ filteredPrescriptions.length }} Prescriptions
+  </span>
+</div>
+
+@if (apiPrescriptionsLoading) {
+  <div class="field-loading-badge p-6 mb-4">
+    <mat-icon class="inline-mat-icon spin-icon">sync</mat-icon> Loading prescriptions from clinic...
+  </div>
+}
+
+<div class="prescriptions-grid">
+  @for (rx of filteredPrescriptions; track rx.id) {
+    <div class="medical-card rx-card hoverable">
+      <div class="rx-card-top">
+        <div>
+          <span class="mono rx-num">{{ rx.prescriptionNumber }}</span>
+          <h3 class="rx-diag">{{ rx.diagnosis }}</h3>
+          <span class="sub-text">{{ rx.doctorName }} ({{ rx.doctorSpecialization }})</span>
+          @if (rx.clinicName) {
+            <span class="rx-clinic-tag">
+              <mat-icon class="tiny-icon">local_hospital</mat-icon> {{ rx.clinicName }}
+            </span>
+          }
+        </div>
+        <span class="rx-date">{{ rx.issuedAt | date:'mediumDate' }}</span>
+      </div>
+
+      <div class="rx-meds-summary">
+        @for (item of rx.items; track item.id) {
+          <div class="med-item-pill">
+            <strong>{{ item.medicineName }}</strong> ({{ item.frequency }}) - {{ item.duration }}
+          </div>
+        }
+      </div>
+
+      <div class="rx-card-bottom">
+        @if (rx.followUpDate) {
+          <span class="followup-badge">
+            Follow-up: {{ rx.followUpDate | date:'mediumDate' }}
+          </span>
+        }
+        <div class="rx-btn-group">
+          <button type="button" class="btn btn-primary btn-block" style="padding: 0.5rem 1rem;" (click)="downloadPrescriptionPdf(rx)">
+            <mat-icon class="inline-mat-icon">download</mat-icon> Download PDF
+          </button>
+          <button type="button" class="btn btn-outline btn-block" style="padding: 0.5rem 1rem;" (click)="viewPrescriptionDetails(rx)">
+            <mat-icon class="inline-mat-icon">visibility</mat-icon> View Details
+          </button>
+        </div>
+      </div>
+    </div>
+  } @empty {
+    <div class="sub-text text-center p-6 empty-rx-msg">
+      <mat-icon class="large-empty-icon">medical_information</mat-icon>
+      <h4>No prescriptions found</h4>
+      <p>No medical prescriptions found matching your current clinic selection or search keyword.</p>
+    </div>
+  }
+</div>
+

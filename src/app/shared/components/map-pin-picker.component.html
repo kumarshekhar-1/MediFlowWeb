@@ -1,0 +1,51 @@
+<div class="map-pin-picker-root">
+  <!-- Search Address Bar with Material Search Icon -->
+  <div class="picker-search-bar">
+    <div class="search-input-box">
+      <mat-icon class="search-icon">search</mat-icon>
+      <input 
+        type="text" 
+        [ngModel]="searchQuery()" 
+        (ngModelChange)="onSearchQueryChange($event)"
+        placeholder="Search hospital locality or area (e.g. Indiranagar, Koramangala, Whitefield)..."
+        class="form-control address-search-input">
+    </div>
+
+    <button type="button" class="btn btn-outline btn-sm gps-btn" (click)="detectGps()">
+      <mat-icon class="inline-mat-icon">my_location</mat-icon> Locate Me
+    </button>
+
+    <!-- Search Dropdown Results -->
+    @if (searchQuery() && searchResults().length > 0) {
+      <div class="search-autocomplete-dropdown">
+        @for (item of searchResults(); track item.name) {
+          <div class="search-result-item" (click)="selectSearchResult(item)">
+            <mat-icon class="res-icon">location_on</mat-icon>
+            <div class="res-text">
+              <strong class="res-title">{{ item.name }}</strong>
+              <span class="res-sub">{{ item.city }}, {{ item.state }} - {{ item.pin }}</span>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <!-- Interactive Real Leaflet Map Canvas with Full Pan, Zoom, and Draggable Marker -->
+  <div class="map-wrapper-card">
+    <div #leafletMapContainer class="leaflet-map-canvas"></div>
+    <div class="map-overlay-tip">
+      <mat-icon class="inline-mat-icon">touch_app</mat-icon> Click or drag the red marker pin anywhere on the map to place your hospital
+    </div>
+  </div>
+
+  <!-- Selected Location Resolution Summary Box -->
+  <div class="selected-location-card">
+    <mat-icon class="loc-check-icon">check_circle</mat-icon>
+    <div class="loc-details">
+      <span class="loc-badge">CONFIRMED MAP LOCATION</span>
+      <h4 class="loc-address-text">{{ selectedFullAddress() }}</h4>
+      <p class="loc-note">Patients within radius will see exact travel distance and driving directions to this location.</p>
+    </div>
+  </div>
+</div>

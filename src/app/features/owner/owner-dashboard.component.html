@@ -1,0 +1,74 @@
+@if (isProfileIncomplete()) {
+  <app-clinic-profile-completion (profileCompleted)="clinicSession.refreshClinic()"></app-clinic-profile-completion>
+} @else {
+  <div class="content-pad">
+    <!-- Header Banner -->
+    <div class="workspace-header">
+      <div class="header-titles">
+        <h1 class="page-title">Clinic Executive Overview</h1>
+        <h2 class="clinic-name" style="margin: 0;">{{ clinicSession.clinicName() }}</h2>
+        <p class="page-subtitle">Owner: <strong>{{ clinicSession.ownerName() }}</strong> • City: <strong>{{ clinicSession.city() }}</strong> • ID: <strong>{{ clinicSession.clinic()?.clinicId || '—' }}</strong></p>
+      </div>
+      <div class="header-actions">
+        <button type="button" class="btn btn-primary" (click)="openAddDoctorDialog()">
+          <mat-icon class="inline-mat-icon">person_add</mat-icon> Onboard Doctor
+        </button>
+        <button type="button" class="btn btn-secondary" (click)="openAddReceptionistDialog()">
+          <mat-icon class="inline-mat-icon">badge</mat-icon> Onboard Receptionist
+        </button>
+      </div>
+    </div>
+
+    <!-- KPI Metrics Grid -->
+    <div class="metrics-grid" style="grid-template-columns: repeat(2, 1fr);">
+      <div class="medical-card metric-card">
+        <div class="metric-icon revenue-icon">
+          <mat-icon>payments</mat-icon>
+        </div>
+        <div class="metric-data">
+          <span class="metric-label">Total Revenue Collected</span>
+          <span class="metric-value">₹{{ totalRevenueValue() | number:'1.0-0' }}</span>
+          <span class="metric-trend positive">↑ {{ totalConsultationsCount() }} Payments Processed</span>
+        </div>
+      </div>
+
+      <div class="medical-card metric-card">
+        <div class="metric-icon appointment-icon">
+          <mat-icon>calendar_today</mat-icon>
+        </div>
+        <div class="metric-data">
+          <span class="metric-label">Total Consultations</span>
+          <span class="metric-value">{{ totalConsultationsCount() }}</span>
+          <span class="metric-trend">Total Appointments Recorded</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Nav Tabs -->
+    <div class="tab-nav mt-6">
+      <button type="button" class="tab-btn" [class.active]="activeTab() === 'DOCTORS'" (click)="activeTab.set('DOCTORS')">
+        <mat-icon class="inline-mat-icon">medical_services</mat-icon> Doctors
+      </button>
+      <button type="button" class="tab-btn" [class.active]="activeTab() === 'RECEPTIONISTS'" (click)="activeTab.set('RECEPTIONISTS')">
+        <mat-icon class="inline-mat-icon">badge</mat-icon> Receptionists &amp; Staff
+      </button>
+
+    </div>
+
+    <!-- TAB 1: Doctors -->
+    @if (activeTab() === 'DOCTORS') {
+      <div class="tab-pane mt-4">
+        <app-owner-doctors></app-owner-doctors>
+      </div>
+    }
+
+    <!-- TAB 2: Receptionists & Staff -->
+    @if (activeTab() === 'RECEPTIONISTS') {
+      <div class="tab-pane mt-4">
+        <app-owner-receptionists></app-owner-receptionists>
+      </div>
+    }
+
+
+  </div>
+}

@@ -1,0 +1,169 @@
+@if (isOpen()) {
+  <div class="modal-overlay">
+    <div class="modal-box">
+      <div class="split-header">
+        <h3>Quick Patient Onboarding</h3>
+        <button type="button" class="btn btn-secondary btn-sm" (click)="close.emit()">
+          <mat-icon class="inline-mat-icon">close</mat-icon>
+        </button>
+      </div>
+
+      <form [formGroup]="quickRegisterForm" (ngSubmit)="submitRegisterPatient()">
+        <div class="modal-body">
+
+          <!-- API Error Banner -->
+          @if (registerError()) {
+            <div class="api-feedback error">
+              <mat-icon>error</mat-icon>
+              <span>{{ registerError() }}</span>
+            </div>
+          }
+
+          <div class="form-grid-2">
+            <!-- name -->
+            <div class="form-group">
+              <label>Full Patient Name <span class="req-star">*</span></label>
+              <input type="text" class="form-control" [class.input-error]="hasError('name')"
+                formControlName="name" placeholder="e.g. Vikram Singh">
+              @if (hasError('name', 'required')) {
+                <span class="field-error">Name is required</span>
+              } @else if (hasError('name', 'pattern')) {
+                <span class="field-error">Name cannot have leading/trailing spaces</span>
+              }
+            </div>
+
+            <!-- phone -->
+            <div class="form-group">
+              <label>Mobile Number <span class="req-star">*</span></label>
+              <div class="input-with-icon">
+                <span class="input-icon">🇮🇳 +91</span>
+                <input type="tel" class="form-control with-icon" [class.input-error]="hasError('phone')"
+                  formControlName="phone" (keypress)="onlyDigits($event)"
+                  (paste)="onPasteDigits($event, 'phone')" placeholder="9876543210" maxlength="10">
+              </div>
+              @if (hasError('phone', 'required')) {
+                <span class="field-error">Phone number is required</span>
+              } @else if (hasError('phone', 'pattern')) {
+                <span class="field-error">Enter a valid 10-digit number (starting with 6-9)</span>
+              }
+            </div>
+
+            <!-- dob -->
+            <div class="form-group">
+              <label>Date of Birth <span class="req-star">*</span></label>
+              <div class="mat-date-field-wrap">
+                <input
+                  class="form-control mat-date-custom-input" [class.input-error]="hasError('dob')"
+                  [matDatepicker]="dobPicker"
+                  formControlName="dob"
+                  placeholder="Select from calendar"
+                  readonly
+                  (click)="dobPicker.open()">
+                <mat-datepicker-toggle matIconSuffix [for]="dobPicker" class="mat-date-toggle-btn"></mat-datepicker-toggle>
+                <mat-datepicker #dobPicker></mat-datepicker>
+              </div>
+              @if (hasError('dob', 'required')) {
+                <span class="field-error">Please select date of birth from the calendar</span>
+              }
+            </div>
+
+            <!-- gender -->
+            <div class="form-group">
+              <label>Gender <span class="req-star">*</span></label>
+              <mat-form-field appearance="outline" class="standard-mat-select-field full-width" subscriptSizing="dynamic">
+                <mat-select formControlName="gender">
+                  <mat-option value="MALE">Male</mat-option>
+                  <mat-option value="FEMALE">Female</mat-option>
+                  <mat-option value="OTHER">Other</mat-option>
+                </mat-select>
+              </mat-form-field>
+              @if (hasError('gender', 'required')) {
+                <span class="field-error">Gender is required</span>
+              }
+            </div>
+
+            <!-- address -->
+            <div class="form-group full-width">
+              <label>Residential Address</label>
+              <input type="text" class="form-control" formControlName="address"
+                placeholder="Flat / House No, Street, Landmark">
+            </div>
+
+            <!-- email -->
+            <div class="form-group">
+              <label>Email Address</label>
+              <input type="email" class="form-control" [class.input-error]="hasError('email')"
+                formControlName="email" placeholder="patient@gmail.com">
+              @if (hasError('email', 'pattern')) {
+                <span class="field-error">Enter a valid email address</span>
+              }
+            </div>
+
+            <!-- emergencyContactNumber -->
+            <div class="form-group">
+              <label>Emergency Contact</label>
+              <div class="input-with-icon">
+                <span class="input-icon">🆘</span>
+                <input type="tel" class="form-control with-icon"
+                  [class.input-error]="hasError('emergencyContactNumber')"
+                  formControlName="emergencyContactNumber"
+                  (keypress)="onlyDigits($event)"
+                  (paste)="onPasteDigits($event, 'emergencyContactNumber')"
+                  placeholder="9876543210" maxlength="10">
+              </div>
+              @if (hasError('emergencyContactNumber', 'pattern')) {
+                <span class="field-error">Enter a valid 10-digit mobile number</span>
+              }
+            </div>
+
+            <!-- pinCode -->
+            <div class="form-group">
+              <label>PIN Code</label>
+              <input type="text" class="form-control" [class.input-error]="hasError('pinCode')"
+                formControlName="pinCode" (keypress)="onlyDigits($event)"
+                (paste)="onPasteDigits($event, 'pinCode')" placeholder="e.g. 110001" maxlength="6">
+              @if (hasError('pinCode', 'pattern')) {
+                <span class="field-error">Enter a valid 6-digit PIN code</span>
+              }
+            </div>
+
+            <!-- bloodGroup -->
+            <div class="form-group">
+              <label>Blood Group</label>
+              <mat-form-field appearance="outline" class="standard-mat-select-field full-width" subscriptSizing="dynamic">
+                <mat-select formControlName="bloodGroup">
+                  <mat-option value="A+">A Positive (A+)</mat-option>
+                  <mat-option value="A-">A Negative (A-)</mat-option>
+                  <mat-option value="B+">B Positive (B+)</mat-option>
+                  <mat-option value="B-">B Negative (B-)</mat-option>
+                  <mat-option value="O+">O Positive (O+)</mat-option>
+                  <mat-option value="O-">O Negative (O-)</mat-option>
+                  <mat-option value="AB+">AB Positive (AB+)</mat-option>
+                  <mat-option value="AB-">AB Negative (AB-)</mat-option>
+                </mat-select>
+              </mat-form-field>
+            </div>
+
+            <!-- medicalHistory -->
+            <div class="form-group full-width">
+              <label>Medical History</label>
+              <input type="text" class="form-control" formControlName="allergiesText"
+                placeholder="e.g. Diabetes, Hypertension, Drug Allergies">
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-actions mt-4">
+          <button type="button" class="btn btn-secondary" (click)="close.emit()">Cancel</button>
+          <button type="submit" class="btn btn-primary" [disabled]="registerSubmitting()">
+            @if (registerSubmitting()) {
+              <mat-icon class="inline-mat-icon spin-icon">sync</mat-icon> Registering...
+            } @else {
+              <mat-icon class="inline-mat-icon">check</mat-icon> Register &amp; Proceed to Book
+            }
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}

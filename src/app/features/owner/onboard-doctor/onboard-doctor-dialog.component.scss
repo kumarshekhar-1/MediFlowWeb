@@ -1,0 +1,170 @@
+:host {
+  display: block;
+  width: 100%;
+}
+
+.modal-box {
+  max-height: 95vh;
+}
+
+/* Phone input with country flag prefix */
+.input-with-icon {
+  display: flex;
+  align-items: center;
+  border: 1.5px solid rgba(191, 219, 254, 0.6);
+  border-radius: var(--radius-md, 8px);
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(8px);
+  overflow: hidden;
+  transition: all 0.2s ease;
+
+  &:focus-within {
+    border-color: var(--navy-600, #1d4ed8);
+    background: #ffffff;
+    box-shadow: 0 0 0 3.5px rgba(37, 99, 235, 0.15);
+  }
+
+  .input-icon {
+    padding: 0.625rem 0.85rem;
+    background: rgba(239, 246, 255, 0.8);
+    border-right: 1px solid rgba(191, 219, 254, 0.6);
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--navy-700, #1e3a8a);
+    white-space: nowrap;
+  }
+
+  .form-control.with-icon {
+    border: none;
+    box-shadow: none;
+    background: transparent;
+    min-height: 44px;
+  }
+
+  &:has(.input-error) {
+    border-color: #dc2626;
+    box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.15);
+  }
+}
+
+.spin-icon {
+  animation: spin 1s linear infinite;
+  display: inline-block;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+.schedules-section {
+  grid-column: 1 / -1;
+  margin-top: 1rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid rgba(191, 219, 254, 0.6);
+}
+
+.schedule-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.85rem;
+  gap: 1rem;
+}
+
+.schedule-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.schedule-row {
+  display: grid;
+  grid-template-columns: 2fr 1.5fr 1.5fr auto;
+  gap: 0.75rem;
+  align-items: center;
+
+  .form-group {
+    margin-bottom: 0 !important;
+  }
+
+  select.form-control {
+    appearance: auto; /* Show native dropdown arrow */
+  }
+
+  @media (max-width: 500px) {
+    grid-template-columns: 1fr;
+    border: 1px dashed rgba(191, 219, 254, 0.8);
+    padding: 0.75rem;
+    border-radius: var(--radius-sm);
+    background: rgba(239, 246, 255, 0.3);
+
+    button {
+      justify-self: end;
+    }
+  }
+}
+
+.schedule-item-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  border-bottom: 1px dashed rgba(191, 219, 254, 0.4);
+  padding-bottom: 0.75rem;
+
+  &:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+}
+
+.schedule-error {
+  margin-top: 0.1rem;
+  margin-bottom: 0.25rem;
+}
+
+.option-container-layout {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  gap: 0.5rem;
+}
+
+.selected-trigger-layout {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.time-picker-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 120px;
+
+  .form-control {
+    padding-right: 2.2rem;
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(191, 219, 254, 0.15);
+    cursor: pointer;
+    text-align: center;
+    color: var(--text-primary);
+    font-weight: 500;
+
+    &:focus {
+      border-color: var(--navy-400);
+      background-color: rgba(255, 255, 255, 0.08);
+    }
+  }
+
+  .time-picker-icon {
+    position: absolute;
+    right: 0.75rem;
+    font-size: 1rem;
+    pointer-events: none;
+    opacity: 0.7;
+  }
+}

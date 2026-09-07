@@ -1,0 +1,121 @@
+<div class="medical-card booking-wizard-card">
+  <h2 class="section-title">Schedule Doctor Visit</h2>
+  
+  <div class="wizard-grid" style="display: flex; flex-direction: column; gap: 1.75rem;">
+    <!-- Selection 1: Clinic / Facility -->
+    <div class="form-group full-width">
+      <label>1. Select Hospital / Clinic Branch</label>
+      <app-custom-select 
+        [options]="clinicSelectOptions" 
+        [selectedValue]="bookingClinicId" 
+        (selectionChange)="onClinicSelected($event)"
+        placeholder="Choose a Clinic Branch...">
+      </app-custom-select>
+    </div>
+
+    <!-- Selection 2: Doctor from this clinic with Specialization & Fees -->
+    <div class="form-group full-width">
+      <label>2. Select Doctor (Specialization &amp; Fee)</label>
+      @if (!bookingClinicId) {
+        <div class="field-empty-prompt">
+          <mat-icon class="inline-mat-icon">arrow_upward</mat-icon> Select a clinic branch above first to view available doctors.
+        </div>
+      } @else if (apiDoctorsLoading) {
+        <div class="loading-state-pill">
+          <mat-icon class="inline-mat-icon spin-icon">sync</mat-icon> Loading doctors for this clinic...
+        </div>
+      } @else if (doctorSelectOptions.length === 0) {
+        <div class="no-doctors-alert">
+          <mat-icon class="inline-mat-icon">info</mat-icon> No doctors registered yet for this clinic branch.
+        </div>
+      } @else {
+        <app-custom-select 
+          [options]="doctorSelectOptions" 
+          [selectedValue]="bookingDoctorId" 
+          (selectionChange)="onDoctorSelected($event)"
+          placeholder="Choose a specialist...">
+        </app-custom-select>
+      }
+    </div>
+
+    <div class="form-group full-width cal-section-wrapper">
+      <label>3. Choose Consultation Date (Doctor Available Days Only)</label>
+      @if (!bookingDoctorId) {
+        <div class="field-empty-prompt">
+          <mat-icon class="inline-mat-icon">arrow_upward</mat-icon> Select a doctor above first to view available dates.
+        </div>
+      } @else {
+        <app-calendar-picker 
+          [selectedDate]="bookingDate" 
+          [allowedWeekdays]="allowedDoctorWeekdays"
+          [scheduleLabel]="selectedDocScheduleLabel"
+          (dateChange)="onDateChanged($event)">
+        </app-calendar-picker>
+      }
+    </div>
+
+    <div class="form-group full-width">
+      <label>4. Select Preferred Time Slot</label>
+      @if (!bookingDoctorId) {
+        <div class="field-empty-prompt">
+          <mat-icon class="inline-mat-icon">arrow_upward</mat-icon> Select a doctor above first to view available time slots.
+        </div>
+      } @else if (!bookingDate) {
+        <div class="field-empty-prompt">
+          <mat-icon class="inline-mat-icon">arrow_upward</mat-icon> Select a date from the calendar first to view available time slots.
+        </div>
+      } @else if (availableSlots.length === 0) {
+        <div class="no-doctors-alert">
+          <mat-icon class="inline-mat-icon">info</mat-icon> No available consultation slots for the selected date. Doctor is available on <strong>{{ selectedDocWorkingDaysStr }}</strong>.
+        </div>
+      } @else {
+        <div class="slots-container" style="display: flex; flex-wrap: wrap; gap: 10px 12px;">
+          @for (slot of availableSlots; track slot) {
+            <span
+              class="chip slot-chip"
+              [class.active]="bookingSlot === slot"
+              (click)="bookingSlot = slot">
+              <mat-icon class="inline-mat-icon">schedule</mat-icon> {{ slot }}
+            </span>
+          }
+        </div>
+      }
+    </div>
+
+    <div class="form-group full-width">
+      <label>5. Reason for Consultation / Symptoms</label>
+      <input 
+        type="text" 
+        class="form-control" 
+        [(ngModel)]="bookingReason" 
+        placeholder="e.g. Mild fever, persistent cough, routine follow-up">
+    </div>
+  </div>
+
+  <!-- Feedback Alerts -->
+  @if (bookingSuccessMsg) {
+    <div class="api-feedback success mt-4">
+      <mat-icon class="inline-mat-icon">check_circle</mat-icon> {{ bookingSuccessMsg }}
+    </div>
+  }
+  @if (bookingErrorMsg) {
+    <div class="api-feedback error mt-4">
+      <mat-icon class="inline-mat-icon">error</mat-icon> {{ bookingErrorMsg }}
+    </div>
+  }
+
+  <div class="wizard-footer" style="margin-top: 1.5rem;">
+    @if (selectedDocObj) {
+      <div class="booking-summary-pill">
+        Consultation Fee: <strong>₹{{ selectedDocObj.consultationFee }}</strong> (Payable at clinic desk or online)
+      </div>
+    }
+    <button type="button" class="btn btn-primary btn-lg" (click)="confirmPatientBooking()" [disabled]="!bookingDoctorId || isBookingSubmitting">
+      @if (isBookingSubmitting) {
+        <mat-icon class="inline-mat-icon spin-icon">sync</mat-icon> Booking on Server...
+      } @else {
+        <mat-icon class="inline-mat-icon">check_circle</mat-icon> Confirm Booking &amp; Get Token
+      }
+    </button>
+  </div>
+</div>

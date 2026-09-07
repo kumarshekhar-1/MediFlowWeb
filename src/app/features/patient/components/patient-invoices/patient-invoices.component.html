@@ -1,0 +1,31 @@
+<div class="medical-card">
+  <h2 class="section-title">Billing & Payment History</h2>
+  <div class="table-responsive">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Invoice No</th>
+          <th>Date</th>
+          <th>Total Amount</th>
+          <th>Payment Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (inv of myInvoices; track inv.id) {
+          <tr>
+            <td><strong class="mono">{{ inv.invoiceNumber }}</strong></td>
+            <td>{{ inv.createdAt | date:'medium' }}</td>
+            <td><strong class="text-emerald">₹{{ inv.total }}</strong></td>
+            <td><span class="badge badge-paid">{{ inv.status }}</span></td>
+            <td>
+              <button type="button" class="btn btn-primary btn-sm" (click)="downloadInvoicePdf(inv)">
+                <mat-icon class="inline-mat-icon">download</mat-icon> Download Tax Invoice PDF
+              </button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

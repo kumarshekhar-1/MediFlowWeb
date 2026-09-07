@@ -1,0 +1,17 @@
+<div class="medical-card">
+  <h2 class="section-title mb-0">HIPAA & DPDP Compliance System Audit Trail</h2>
+  <div class="audit-list mt-3">
+    @for (log of db.auditLogs(); track log.id) {
+      <div class="audit-item">
+        <div class="audit-time">{{ log.timestamp | date:'short' }}</div>
+        <div class="audit-badge">{{ log.action }}</div>
+        <div class="audit-desc">
+          <strong>{{ log.userName }}</strong>: {{ log.details }}
+          <span class="audit-ref">({{ log.resource }} #{{ log.resourceId }})</span>
+        </div>
+      </div>
+    } @empty {
+      <div class="text-center py-4 sub-text">No audit logs found.</div>
+    }
+  </div>
+</div>

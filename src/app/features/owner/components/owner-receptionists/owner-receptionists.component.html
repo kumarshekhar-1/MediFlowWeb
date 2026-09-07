@@ -1,0 +1,68 @@
+<div class="medical-card">
+  <div class="split-header">
+    <div>
+      <h2 class="section-title mb-0">Clinic Receptionists</h2>
+      <p class="sub-text">Receptionists manage patient check-in, token queues, and billing.</p>
+    </div>
+    <button type="button" class="btn btn-primary btn-sm" (click)="openAddReceptionistDialog()">
+      <mat-icon class="inline-mat-icon">person_add</mat-icon> Onboard Receptionist
+    </button>
+  </div>
+
+  <div class="table-responsive mt-3">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th style="white-space: nowrap;">Receptionist</th>
+          <th style="white-space: nowrap;">Employee ID</th>
+          <th style="white-space: nowrap;">Contact</th>
+          <th style="white-space: nowrap;">Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        @if (receptionistListLoading) {
+          <tr><td colspan="4" class="text-center py-4">Loading receptionists...</td></tr>
+        } @else if (receptionistList.length === 0) {
+          <tr><td colspan="4" class="text-center py-4 sub-text">No receptionists onboarded yet.</td></tr>
+        } @else {
+          @for (rec of receptionistList; track rec.receptionistId) {
+            <tr>
+              <!-- Name + Email -->
+              <td style="white-space: nowrap;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                  <div style="width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; flex-shrink: 0;">
+                    {{ getReceptionistInitial(rec.name) }}
+                  </div>
+                  <div style="display: flex; flex-direction: column; gap: 2px;">
+                    <strong style="display: block;">{{ rec.name }}</strong>
+                    <span class="sub-text" style="display: block; font-size: 0.78rem;">{{ rec.email }}</span>
+                  </div>
+                </div>
+              </td>
+
+              <!-- Employee ID -->
+              <td>
+                <span class="badge badge-booked" style="font-weight: 600; letter-spacing: 0.3px;">{{ rec.receptionistId }}</span>
+              </td>
+
+              <!-- Contact -->
+              <td style="white-space: nowrap;">
+                <div style="display: flex; align-items: center; gap: 6px;">
+                  <mat-icon class="inline-mat-icon sub-text" style="font-size: 16px; width: 16px; height: 16px;">phone</mat-icon>
+                  <span style="font-size: 0.85rem;">{{ rec.mobileNumber || '—' }}</span>
+                </div>
+              </td>
+
+              <!-- Status -->
+              <td>
+                <span class="badge" [class.badge-confirmed]="rec.status === 'ACTIVE'" [class.badge-cancelled]="rec.status !== 'ACTIVE'">
+                  {{ rec.status || 'ACTIVE' }}
+                </span>
+              </td>
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

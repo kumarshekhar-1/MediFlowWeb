@@ -1,0 +1,88 @@
+<div class="auth-page-container">
+  <div class="auth-card">
+    <div class="auth-header">
+      <div class="auth-logo">
+        <mat-icon style="font-size: 3rem; width: 3rem; height: 3rem;">domain_add</mat-icon>
+      </div>
+      <h2 class="auth-title">Register Your Clinic / Hospital</h2>
+      <p class="auth-desc">Onboard your healthcare practice to MediFlow OS. All fields marked <span class="req-star">*</span> are required by the system.</p>
+    </div>
+
+    <!-- API Feedback -->
+    @if (apiSuccess()) {
+      <div class="api-feedback success">
+        <mat-icon>check_circle</mat-icon>
+        <span>{{ apiSuccess() }}</span>
+      </div>
+    }
+    @if (apiError()) {
+      <div class="api-feedback error">
+        <mat-icon>error</mat-icon>
+        <span>{{ apiError() }}</span>
+      </div>
+    }
+
+    <form [formGroup]="registerForm" (ngSubmit)="submitRegistration()">
+
+      <div class="form-section-title">Clinic Account Sign-Up</div>
+      <div class="form-grid-1" style="display: flex; flex-direction: column; gap: 1.25rem; margin-bottom: 1.5rem;">
+
+        <!-- Clinic Name -->
+        <div class="form-group">
+          <label>Hospital / Clinic Name <span class="req-star">*</span></label>
+          <input type="text" class="form-control" [class.input-error]="hasError('clinicName')"
+            formControlName="clinicName" placeholder="e.g. Apollo Care Polyclinic">
+          @if (hasError('clinicName', 'required')) {
+            <span class="field-error">Clinic name is required</span>
+          } @else if (hasError('clinicName', 'maxlength')) {
+            <span class="field-error">Clinic name must not exceed 150 characters</span>
+          }
+        </div>
+
+        <!-- Phone Number -->
+        <div class="form-group">
+          <label>Owner Mobile Number <span class="req-star">*</span></label>
+          <div class="input-with-icon">
+            <span class="input-icon">🇮🇳 +91</span>
+            <input type="tel" class="form-control with-icon" [class.input-error]="hasError('ownerPhoneNumber')"
+              formControlName="ownerPhoneNumber"
+              (keypress)="onlyDigits($event)"
+              (paste)="onPasteDigits($event, 'ownerPhoneNumber')"
+              placeholder="9876543210" maxlength="10">
+          </div>
+          @if (hasError('ownerPhoneNumber', 'required')) {
+            <span class="field-error">Phone number is required</span>
+          } @else if (hasError('ownerPhoneNumber', 'pattern')) {
+            <span class="field-error">Enter a valid 10-digit number (starting with 6–9)</span>
+          }
+        </div>
+
+        <!-- Password -->
+        <div class="form-group">
+          <label>Password <span class="req-star">*</span></label>
+          <input type="password" class="form-control" [class.input-error]="hasError('password')"
+            formControlName="password" placeholder="Min 8 characters">
+          @if (hasError('password', 'required')) {
+            <span class="field-error">Password is required</span>
+          } @else if (hasError('password', 'minlength')) {
+            <span class="field-error">Password must be at least 8 characters long</span>
+          }
+        </div>
+
+      </div>
+
+      <!-- Actions -->
+      <div class="auth-actions">
+        <button type="button" class="btn btn-secondary" (click)="cancel()">Back to Home</button>
+        <button type="submit" class="btn btn-primary btn-lg" [disabled]="isSubmitting()">
+          @if (isSubmitting()) {
+            <mat-icon class="inline-mat-icon spin-icon">sync</mat-icon> Signing up...
+          } @else {
+            Sign Up <mat-icon class="inline-mat-icon">arrow_forward</mat-icon>
+          }
+        </button>
+      </div>
+
+    </form>
+  </div>
+</div>

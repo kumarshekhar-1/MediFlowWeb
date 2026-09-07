@@ -1,0 +1,206 @@
+.custom-select-root {
+  position: relative;
+  width: 100%;
+  user-select: none;
+
+  &.is-open {
+    z-index: 50;
+  }
+}
+
+.select-trigger {
+  width: 100%;
+  min-height: 44px;
+  padding: 0.6rem 0.95rem;
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1.5px solid rgba(191, 219, 254, 0.6);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  text-align: left;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: var(--shadow-sm);
+
+  &:hover:not(:disabled) {
+    border-color: var(--navy-500);
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.08);
+  }
+
+  .trigger-left {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 0;
+    flex: 1;
+
+    .opt-icon {
+      font-family: 'Material Icons' !important;
+      font-size: 1.1rem;
+      color: var(--navy-600);
+      display: inline-block;
+      line-height: 1;
+      vertical-align: middle;
+    }
+  }
+
+  .trigger-label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--navy-950);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    &.is-placeholder {
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+  }
+
+  .chevron-arrow {
+    font-size: 0.85rem;
+    color: var(--navy-600);
+    transition: transform 0.2s ease;
+  }
+}
+
+.is-open {
+  .select-trigger {
+    border-color: var(--navy-600);
+    background: #ffffff;
+    box-shadow: 0 0 0 3.5px rgba(37, 99, 235, 0.15), 0 4px 14px rgba(37, 99, 235, 0.1);
+  }
+
+  .chevron-arrow {
+    transform: rotate(180deg);
+  }
+}
+
+.is-disabled {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.select-menu-popover {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1.5px solid rgba(191, 219, 254, 0.8);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 16px 36px -6px rgba(11, 21, 46, 0.18), 0 0 0 1px rgba(255, 255, 255, 0.9);
+  z-index: 100;
+  overflow: hidden;
+  max-height: 290px;
+  display: flex;
+  flex-direction: column;
+  animation: popoverFadeIn 0.15s ease-out;
+}
+
+@keyframes popoverFadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.menu-search-box {
+  padding: 0.5rem;
+  border-bottom: 1px solid rgba(191, 219, 254, 0.5);
+  background: rgba(239, 246, 255, 0.7);
+
+  .search-input {
+    width: 100%;
+    padding: 0.45rem 0.75rem;
+    border: 1px solid rgba(191, 219, 254, 0.8);
+    border-radius: var(--radius-sm);
+    font-size: 0.8rem;
+    background: #ffffff;
+    color: var(--navy-950);
+
+    &:focus {
+      border-color: var(--navy-500);
+      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+    }
+  }
+}
+
+.options-list {
+  overflow-y: auto;
+  padding: 0.35rem;
+}
+
+.option-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.55rem 0.85rem;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover {
+    background: rgba(239, 246, 255, 0.8);
+    color: var(--navy-800);
+  }
+
+  &.selected {
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.12), rgba(30, 58, 138, 0.08));
+    color: var(--navy-700);
+    font-weight: 750;
+    border-left: 3px solid var(--navy-600);
+  }
+
+  .opt-main {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    min-width: 0;
+  }
+
+  .opt-icon {
+    font-family: 'Material Icons' !important;
+    font-size: 1.1rem;
+    color: var(--navy-600);
+    display: inline-block;
+    line-height: 1;
+    vertical-align: middle;
+  }
+
+  .opt-text {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .opt-title {
+    font-size: 0.85rem;
+    color: var(--navy-950);
+  }
+
+  .opt-sub {
+    font-size: 0.725rem;
+    color: var(--text-muted);
+  }
+
+  .opt-badge {
+    font-size: 0.7rem;
+    font-weight: 800;
+    background: rgba(219, 234, 254, 0.8);
+    color: var(--navy-700);
+    padding: 0.15rem 0.5rem;
+    border-radius: var(--radius-full);
+    border: 1px solid rgba(191, 219, 254, 0.8);
+  }
+}
+
+.no-options-msg {
+  padding: 1rem;
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}

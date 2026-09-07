@@ -1,0 +1,130 @@
+<div class="auth-viewport">
+  <div class="auth-box">
+    <!-- Brand Header -->
+    <div class="brand-center">
+      <div class="brand-icon-large">
+        <mat-icon>local_hospital</mat-icon>
+      </div>
+      <h1 class="auth-brand-name">MediFlow<span class="os-pill">OS</span></h1>
+      <p class="auth-tagline">Multi-Tenant Healthcare & Clinic Management Platform</p>
+    </div>
+
+    <!-- Main Auth Switcher: Login vs Register -->
+    <div class="auth-mode-tabs">
+      <button 
+        type="button" 
+        class="auth-mode-tab" 
+        [class.active]="authMode === 'LOGIN'" 
+        (click)="setAuthMode('LOGIN')">
+        <mat-icon class="inline-mat-icon">login</mat-icon> Sign In / Login
+      </button>
+      <button 
+        type="button" 
+        class="auth-mode-tab" 
+        [class.active]="authMode === 'REGISTER'" 
+        (click)="setAuthMode('REGISTER')">
+        <mat-icon class="inline-mat-icon">person_add</mat-icon> Create Account
+      </button>
+    </div>
+
+    <!-- ==================== TAB 1: LOGIN ==================== -->
+    @if (authMode === 'LOGIN') {
+      <div class="auth-form-card">
+        <!-- Login method — Email / User ID + Password only -->
+        <div class="login-method-pills">
+          <button
+            type="button"
+            class="method-pill active">
+            <mat-icon class="inline-mat-icon">mail</mat-icon> Email / User ID
+          </button>
+        </div>
+
+        <!-- Method B: Email / User ID + Password -->
+        <div class="method-body">
+            @if (apiError()) {
+              <div class="api-error-alert" style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); color: #ef4444; padding: 10px; border-radius: 6px; margin-bottom: 12px; font-size: 13px; display: flex; align-items: center; gap: 8px;">
+                <mat-icon style="font-size: 18px; width: 18px; height: 18px; line-height: 18px;">error_outline</mat-icon>
+                <span>{{ apiError() }}</span>
+              </div>
+            }
+
+            <form (ngSubmit)="loginWithEmailPassword()">
+              <div class="form-group">
+                <label>Registered Email or User ID</label>
+                <input 
+                  type="text" 
+                  class="form-control" 
+                  [(ngModel)]="loginIdentifier" 
+                  name="ident" 
+                  required 
+                  [disabled]="isSubmitting()"
+                  placeholder="e.g. ramesh.gupta@apollocare.com or rahul.kumar@gmail.com">
+              </div>
+
+              <div class="form-group">
+                <label>Password</label>
+                <input 
+                  type="password" 
+                  class="form-control" 
+                  [(ngModel)]="loginPassword" 
+                  name="pwd" 
+                  [disabled]="isSubmitting()"
+                  placeholder="••••••••">
+                <span class="field-hint">Any password accepted in demo mode.</span>
+              </div>
+
+              <button type="submit" class="btn btn-primary btn-block btn-lg" [disabled]="isSubmitting()">
+                {{ isSubmitting() ? 'Signing In...' : 'Sign In' }} <mat-icon class="inline-mat-icon">arrow_forward</mat-icon>
+              </button>
+            </form>
+          </div>
+      </div>
+    }
+
+    <!-- ==================== TAB 2: REGISTER ==================== -->
+    @if (authMode === 'REGISTER') {
+      <div class="auth-form-card">
+        <h3 class="register-header-title">Select Your Registration Account Type</h3>
+        <p class="sub-text mb-4">Choose how you want to join MediFlow OS:</p>
+
+        <div class="register-options-grid">
+          <!-- Option A: Clinic / Hospital Owner -->
+          <div class="reg-choice-card hoverable" (click)="selectRegistrationType('CLINIC')">
+            <div class="reg-choice-icon">
+              <mat-icon>domain_add</mat-icon>
+            </div>
+            <h4>Register Clinic / Hospital</h4>
+            <p>For clinic owners and administrators to onboard doctors, manage live token queues, POS billing, and revenue analytics.</p>
+            <button type="button" class="btn btn-primary btn-sm btn-block mt-3">
+              Register Clinic <mat-icon class="inline-mat-icon">arrow_forward</mat-icon>
+            </button>
+          </div>
+
+          <!-- Option B: Patient Profile -->
+          <div class="reg-choice-card hoverable" (click)="selectRegistrationType('PATIENT')">
+            <div class="reg-choice-icon">
+              <mat-icon>person_add</mat-icon>
+            </div>
+            <h4>Register as Patient</h4>
+            <p>For patients to search top medical specialists, book appointments, track live queue token status, and view prescriptions.</p>
+            <button type="button" class="btn btn-secondary btn-sm btn-block mt-3">
+              Register Patient <mat-icon class="inline-mat-icon">arrow_forward</mat-icon>
+            </button>
+          </div>
+        </div>
+
+        <div class="register-footer-hint">
+          <span>Already have an account?</span>
+          <button type="button" class="link-btn" (click)="setAuthMode('LOGIN')">Sign In here</button>
+        </div>
+      </div>
+    }
+
+    <!-- Public Landing Page Link -->
+    <div class="landing-switch-footer">
+      <button type="button" class="landing-link" (click)="openLandingPage()">
+        <mat-icon class="inline-mat-icon">home</mat-icon> Back to Home & Features
+      </button>
+    </div>
+  </div>
+</div>

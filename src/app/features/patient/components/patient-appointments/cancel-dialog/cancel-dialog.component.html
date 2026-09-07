@@ -1,0 +1,61 @@
+<div class="modal-content cancel-modal-card">
+  <div class="modal-header">
+    <div class="modal-title-wrap">
+      <mat-icon class="danger-icon">warning</mat-icon>
+      <h3>Cancel Appointment</h3>
+    </div>
+    <button type="button" class="btn btn-secondary btn-sm" (click)="closeDialog()">
+      <mat-icon class="inline-mat-icon">close</mat-icon>
+    </button>
+  </div>
+
+  <div class="modal-body">
+    <div class="warning-banner mb-4">
+      <mat-icon class="warning-banner-icon">report_problem</mat-icon>
+      <div class="warning-banner-text">
+        <strong>Are you sure you want to cancel this visit?</strong>
+        <p>This action cannot be undone. Any paid fee will be refunded back to your source account.</p>
+      </div>
+    </div>
+
+    <div class="current-apt-banner mb-4">
+      <span>Appointment with <strong>{{ appointment.doctorName }}</strong></span>
+      <div class="mt-1">
+        Date: <strong>{{ appointment.appointmentDate }}</strong> at <strong>{{ appointment.timeSlot }}</strong>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Reason for Cancellation</label>
+      <textarea 
+        class="form-control reason-textarea" 
+        rows="3"
+        [ngModel]="cancelReasonText()" 
+        (ngModelChange)="cancelReasonText.set($event)"
+        placeholder="Please describe why you are cancelling this appointment..."></textarea>
+    </div>
+
+    @if (cancelErrorMsg()) {
+      <div class="api-feedback error mt-4">
+        <mat-icon class="inline-mat-icon">error</mat-icon> {{ cancelErrorMsg() }}
+      </div>
+    }
+  </div>
+
+  <div class="modal-footer">
+    <button type="button" class="btn btn-secondary" (click)="closeDialog()" [disabled]="isCancellingSubmitting()">
+      Keep Appointment
+    </button>
+    <button 
+      type="button" 
+      class="btn btn-danger" 
+      (click)="submitCancel()" 
+      [disabled]="isCancellingSubmitting()">
+      @if (isCancellingSubmitting()) {
+        <mat-icon class="inline-mat-icon spin-icon">sync</mat-icon> Cancelling...
+      } @else {
+        <mat-icon class="inline-mat-icon">cancel</mat-icon> Confirm Cancellation
+      }
+    </button>
+  </div>
+</div>
