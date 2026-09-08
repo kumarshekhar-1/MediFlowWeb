@@ -1,6 +1,7 @@
 import { HttpInterceptorFn, HttpRequest, HttpHandlerFn } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { AuthTokenService } from '../services/auth-token.service';
+import { environment } from '../../../environments/environment';
 
 /**
  * API Auth Interceptor
@@ -16,7 +17,8 @@ export const apiAuthInterceptor: HttpInterceptorFn = (
   next: HttpHandlerFn
 ) => {
   // Only intercept requests to the mediFlow backend
-  if (!req.url.includes('localhost:8080')) {
+  const isBackend = req.url.startsWith(environment.apiUrl) || req.url.includes('localhost:8080');
+  if (!isBackend) {
     return next(req);
   }
 

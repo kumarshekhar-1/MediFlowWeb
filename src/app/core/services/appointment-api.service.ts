@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 export interface CreateAppointmentPayload {
   doctorId: string;
@@ -40,7 +41,7 @@ export interface AppointmentApiResponse {
 })
 export class AppointmentApiService {
   private readonly http = inject(HttpClient);
-  private readonly baseUrl = 'http://localhost:8080/appointments';
+  private readonly baseUrl = `${environment.apiUrl}/appointments`;
 
   /**
    * Book an appointment via POST /appointments/bookAppointment?clinicId=

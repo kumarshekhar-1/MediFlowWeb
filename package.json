@@ -5,6 +5,7 @@
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
+    "serve:prod": "npx -y serve -s dist/clinic-management-web -l 4200",
     "watch": "ng build --watch --configuration development"
   },
   "private": true,

@@ -5,6 +5,7 @@ import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { User, Clinic, Doctor, Receptionist, Patient, Appointment, Medicine, ClinicService, Invoice, Prescription, PrescriptionTemplate, Expense, AuditLog, UserRole } from '../models/clinic.models';
 import { AuthTokenService } from './auth-token.service';
+import { environment } from '../../../environments/environment';
 
 export interface LoginRequest {
   userId: string;
@@ -170,7 +171,7 @@ export class SessionStateService {
 
   login(userId: string, password: string): Observable<LoginResponse> {
     const payload: LoginRequest = { userId, password };
-    return this.http.post<LoginResponse>('http://localhost:8080/auth/login', payload).pipe(
+    return this.http.post<LoginResponse>(`${environment.apiUrl}/auth/login`, payload).pipe(
       tap(res => {
         if (res && res.token) {
           // Store ONLY the login API response object in localStorage
@@ -203,7 +204,7 @@ export class SessionStateService {
   }
 
   registerPatientPortal(mobileNo: string, patientName: string, password: string): Observable<any> {
-    return this.http.post<any>('http://localhost:8080/auth/signin-patient', {
+    return this.http.post<any>(`${environment.apiUrl}/auth/signin-patient`, {
       mobileNo,
       patientName,
       password
@@ -211,7 +212,7 @@ export class SessionStateService {
   }
 
   registerClinicPortal(mobileNo: string, clinicName: string, password: string): Observable<any> {
-    return this.http.post<any>('http://localhost:8080/auth/signin-clinic', {
+    return this.http.post<any>(`${environment.apiUrl}/auth/signin-clinic`, {
       mobileNo,
       clinicName,
       password

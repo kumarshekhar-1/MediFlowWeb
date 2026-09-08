@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 export interface PatientRegistrationPayload {
   name: string;
@@ -25,7 +26,7 @@ export interface PatientApiResponse {
 })
 export class PatientApiService {
   private readonly http = inject(HttpClient);
-  private readonly baseUrl = 'http://localhost:8080/patient';
+  private readonly baseUrl = `${environment.apiUrl}/patient`;
 
   registerPatient(payload: PatientRegistrationPayload): Observable<PatientApiResponse> {
     return this.http.post<PatientApiResponse>(`${this.baseUrl}/registerPatient`, payload);

@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 export interface PrescriptionMedicinePayload {
   medicineName: string;
@@ -54,7 +55,7 @@ export interface PrescriptionApiResponse {
 })
 export class PrescriptionApiService {
   private readonly http = inject(HttpClient);
-  private readonly baseUrl = 'http://localhost:8080/clinics';
+  private readonly baseUrl = `${environment.apiUrl}/clinics`;
 
   /**
    * Create digital prescription via POST /clinics/{clinicId}/prescriptions
@@ -140,14 +141,14 @@ export class PrescriptionApiService {
     if (diagnosis) {
       params.diagnosis = diagnosis;
     }
-    return this.http.get<any[]>('http://localhost:8080/prescriptions/suggestions/medicines', { params });
+    return this.http.get<any[]>(`${environment.apiUrl}/prescriptions/suggestions/medicines`, { params });
   }
 
   /**
    * Auto-suggest diagnosis / diseases (e.g. GET /prescriptions/suggestions/diagnosis)
    */
   suggestDiagnosis(query: string, limit: number = 10): Observable<any[]> {
-    return this.http.get<any[]>('http://localhost:8080/prescriptions/suggestions/diagnosis', {
+    return this.http.get<any[]>(`${environment.apiUrl}/prescriptions/suggestions/diagnosis`, {
       params: { query, limit }
     });
   }

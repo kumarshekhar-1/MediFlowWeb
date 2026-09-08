@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { DoctorCreationPayload } from '../models/doctor.model';
+import { environment } from '../../../environments/environment';
 export interface ClinicRegistrationPayload {
   clinicName: string;
   ownerName: string;
@@ -43,7 +44,7 @@ export interface ClinicApiResponse {
 })
 export class ClinicApiService {
   private readonly http = inject(HttpClient);
-  private readonly baseUrl = 'http://localhost:8080/clinics';
+  private readonly baseUrl = `${environment.apiUrl}/clinics`;
 
 
   /**
